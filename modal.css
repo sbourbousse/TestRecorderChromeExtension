@@ -1,0 +1,202 @@
+/* Styles pour le nouveau système d'enregistrement non-intrusif */
+
+/* Indicateur d'enregistrement */
+#test-recorder-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999998;
+  max-width: 400px;
+}
+
+.recording-indicator {
+  background: #dc3545;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.recording-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: pulse 2s infinite;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.actions-list {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.actions-header {
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.actions-header h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.clear-btn:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.actions-content {
+  padding: 8px 0;
+}
+
+.action-item {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-item:last-child {
+  border-bottom: none;
+}
+
+.action-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.action-number {
+  background: #007bff;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+.action-element {
+  background: #6c757d;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.action-comment {
+  font-size: 12px;
+  color: #666;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.needs-justification {
+  color: #ffc107;
+  font-size: 12px;
+}
+
+.justified {
+  color: #28a745;
+  font-size: 12px;
+}
+
+.justify-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.justify-btn:hover {
+  background: #0056b3;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+.step-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-primary, .btn-secondary {
+    width: 100%;
+  }
+}
