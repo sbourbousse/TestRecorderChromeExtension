@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('file-input').addEventListener('change', handleFileSelect);
     
     // Gestionnaire pour le bouton de rafraîchissement dans l'état vide
-    // document.getElementById('empty-refresh-btn').addEventListener('click', loadTestData);
+    // document.getElementBycuId('empty-refresh-btn').addEventListener('click', loadTestData);
     
          // Gestionnaire pour le bouton de fermeture du dialog
      const closeDialogBtn = document.getElementById('close-dialog-btn');
