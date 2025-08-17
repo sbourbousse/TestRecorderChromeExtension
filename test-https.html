@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Recorder - Page de Test</title>
+    <title>Test Recorder - Page HTTPS de Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,16 +11,22 @@
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
         }
         .test-section {
             margin: 30px 0;
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
         .test-section h2 {
-            color: #333;
+            color: #fff;
             margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         button {
             background: #007bff;
@@ -30,15 +36,23 @@
             border-radius: 5px;
             cursor: pointer;
             margin: 5px;
+            transition: all 0.3s ease;
         }
         button:hover {
             background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         input, textarea, select {
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 4px;
             margin: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
         }
         .form-group {
             margin: 10px 0;
@@ -47,11 +61,29 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #fff;
+        }
+        .security-info {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .security-info h3 {
+            color: #4CAF50;
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
-    <h1>🧪 Page de Test pour Test Recorder</h1>
+    <h1>🔒 Test Recorder - Page HTTPS de Test</h1>
+    
+    <div class="security-info">
+        <h3>✅ Page Sécurisée</h3>
+        <p>Cette page est servie en HTTPS, ce qui permet l'utilisation complète des captures d'écran.</p>
+        <p><strong>Protocole actuel :</strong> <span id="protocol">Vérification...</span></p>
+    </div>
     
     <div class="test-section">
         <h2>📝 Formulaire de Test</h2>
@@ -97,9 +129,9 @@
     
     <div class="test-section">
         <h2>🔗 Liens de Test</h2>
-        <a href="#" onclick="alert('Lien 1 cliqué!'); return false;">Lien de test 1</a><br>
-        <a href="#" onclick="alert('Lien 2 cliqué!'); return false;">Lien de test 2</a><br>
-        <a href="#" onclick="alert('Lien 3 cliqué!'); return false;">Lien de test 3</a>
+        <a href="#" onclick="alert('Lien 1 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 1</a><br>
+        <a href="#" onclick="alert('Lien 2 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 2</a><br>
+        <a href="#" onclick="alert('Lien 3 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 3</a>
     </div>
     
     <div class="test-section">
@@ -116,25 +148,34 @@
             <li>Cliquez sur "Arrêter l'enregistrement" pour générer les fichiers</li>
         </ol>
         
-        <h3>🆕 Nouvelles Fonctionnalités</h3>
+        <h3>🆕 Fonctionnalités de Sécurité</h3>
         <ul>
-            <li><strong>Captures d'écran automatiques</strong> : Chaque action est accompagnée d'une capture d'écran</li>
-            <li><strong>Visualisation en temps réel</strong> : Voir les captures d'écran dans la liste des actions</li>
-            <li><strong>Mode plein écran</strong> : Cliquez sur 🔍 pour voir les captures en grand</li>
-            <li><strong>Contrôle des captures</strong> : Activez/désactivez les captures d'écran avec le bouton 📷</li>
-            <li><strong>Fichiers enrichis</strong> : Les captures d'écran sont incluses dans les fichiers générés</li>
+            <li><strong>HTTPS requis</strong> : Les captures d'écran ne fonctionnent que sur les pages sécurisées</li>
+            <li><strong>Protection automatique</strong> : L'extension détecte automatiquement les pages non sécurisées</li>
+            <li><strong>Notifications informatives</strong> : Messages clairs sur les limitations de sécurité</li>
+            <li><strong>Fallback gracieux</strong> : L'enregistrement continue même sans captures d'écran</li>
         </ul>
     </div>
     
     <script>
         // Script pour simuler des interactions
-        console.log('Page de test chargée - Prêt pour l\'enregistrement !');
+        console.log('Page de test HTTPS chargée - Prêt pour l\'enregistrement avec captures d\'écran !');
+        
+        // Afficher le protocole actuel
+        document.getElementById('protocol').textContent = window.location.protocol;
         
         // Empêcher la soumission du formulaire
         document.querySelector('form').addEventListener('submit', function(e) {
             e.preventDefault();
             alert('Formulaire soumis ! (simulation)');
         });
+        
+        // Vérifier la sécurité
+        if (window.location.protocol === 'https:') {
+            console.log('✅ Page sécurisée - Captures d\'écran disponibles');
+        } else {
+            console.warn('⚠️ Page non sécurisée - Captures d\'écran non disponibles');
+        }
     </script>
 </body>
 </html>

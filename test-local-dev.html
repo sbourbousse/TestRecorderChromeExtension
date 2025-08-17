@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Recorder - Environnement de Développement Local</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .test-section h2 {
+            color: #fff;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        input, textarea, select {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .dev-info {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .dev-info h3 {
+            color: #ffc107;
+            margin-top: 0;
+        }
+        .env-details {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Recorder - Environnement de Développement Local</h1>
+    
+    <div class="dev-info">
+        <h3>🔍 Détection d'Environnement</h3>
+        <p>Cette page simule un environnement de développement local pour tester les captures d'écran.</p>
+        <div class="env-details">
+            <strong>Hostname:</strong> <span id="hostname">Détection...</span><br>
+            <strong>Port:</strong> <span id="port">Détection...</span><br>
+            <strong>Protocole:</strong> <span id="protocol">Détection...</span><br>
+            <strong>URL complète:</strong> <span id="fullUrl">Détection...</span>
+        </div>
+        <p><strong>Statut:</strong> <span id="status">Vérification...</span></p>
+    </div>
+    
+    <div class="test-section">
+        <h2>📝 Formulaire de Test</h2>
+        <form>
+            <div class="form-group">
+                <label for="name">Nom :</label>
+                <input type="text" id="name" name="name" placeholder="Votre nom">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" placeholder="votre@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Pays :</label>
+                <select id="country" name="country">
+                    <option value="">Sélectionnez un pays</option>
+                    <option value="france">France</option>
+                    <option value="canada">Canada</option>
+                    <option value="belgique">Belgique</option>
+                    <option value="suisse">Suisse</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message :</label>
+                <textarea id="message" name="message" rows="4" placeholder="Votre message..."></textarea>
+            </div>
+            
+            <button type="submit">Envoyer</button>
+            <button type="reset">Réinitialiser</button>
+        </form>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔘 Boutons de Test</h2>
+        <button onclick="alert('Bouton 1 cliqué!')">Bouton Principal</button>
+        <button onclick="alert('Bouton 2 cliqué!')" style="background: #28a745;">Bouton Succès</button>
+        <button onclick="alert('Bouton 3 cliqué!')" style="background: #dc3545;">Bouton Danger</button>
+        <button onclick="alert('Bouton 4 cliqué!')" style="background: #ffc107; color: #333;">Bouton Avertissement</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔗 Liens de Test</h2>
+        <a href="#" onclick="alert('Lien 1 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 1</a><br>
+        <a href="#" onclick="alert('Lien 2 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 2</a><br>
+        <a href="#" onclick="alert('Lien 3 cliqué!'); return false;" style="color: #fff; text-decoration: underline;">Lien de test 3</a>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 Instructions de Test</h2>
+        <ol>
+            <li>Cliquez sur l'icône de l'extension Test Recorder dans votre navigateur</li>
+            <li>Cliquez sur "Démarrer l'enregistrement"</li>
+            <li>Interagissez avec les éléments de cette page (cliquez sur les boutons, remplissez le formulaire, etc.)</li>
+            <li>Observez l'indicateur d'enregistrement en haut à droite</li>
+            <li>Utilisez le bouton 📷 pour activer/désactiver les captures d'écran</li>
+            <li>Cliquez sur l'icône 📋 pour voir la liste des actions avec captures d'écran</li>
+            <li>Cliquez sur 🔍 pour voir les captures d'écran en grand</li>
+            <li>Justifiez certaines actions en cliquant sur "Justifier"</li>
+            <li>Cliquez sur "Arrêter l'enregistrement" pour générer les fichiers</li>
+        </ol>
+        
+        <h3>🆕 Fonctionnalités pour Environnements Locaux</h3>
+        <ul>
+            <li><strong>Détection automatique</strong> : L'extension détecte automatiquement les environnements de développement</li>
+            <li><strong>Captures d'écran autorisées</strong> : Les captures d'écran fonctionnent sur les environnements locaux</li>
+            <li><strong>Patterns supportés</strong> : localhost, IPs locales, ports de développement, domaines qa/dev/staging</li>
+            <li><strong>Notifications adaptées</strong> : Messages spécifiques pour les environnements de développement</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Script pour simuler des interactions et afficher les détails de l'environnement
+        console.log('Page de test environnement local chargée - Prêt pour l\'enregistrement avec captures d\'écran !');
+        
+        // Afficher les détails de l'environnement
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('port').textContent = window.location.port || '80 (défaut)';
+        document.getElementById('protocol').textContent = window.location.protocol;
+        document.getElementById('fullUrl').textContent = window.location.href;
+        
+        // Fonction pour détecter l'environnement local (similaire à celle de l'extension)
+        function isLocalDevelopmentEnvironment() {
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            const localPatterns = [
+                /^localhost$/,
+                /^127\.0\.0\.1$/,
+                /^192\.168\./,
+                /^10\./,
+                /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+                /^qa\./,
+                /^dev\./,
+                /^staging\./,
+                /^test\./,
+                /^local\./,
+                /^\.local$/,
+                /^\.test$/,
+                /^\.dev$/
+            ];
+            
+            const isLocalHostname = localPatterns.some(pattern => pattern.test(hostname));
+            const devPorts = ['3000', '3001', '8080', '8000', '5000', '4000', '9000', '4200', '3002', '3003'];
+            const isDevPort = devPorts.includes(port);
+            const isLocalIP = hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)/);
+            
+            return isLocalHostname || isDevPort || isLocalIP;
+        }
+        
+        // Afficher le statut
+        const isLocal = isLocalDevelopmentEnvironment();
+        const statusElement = document.getElementById('status');
+        
+        if (isLocal) {
+            statusElement.textContent = '✅ Environnement local détecté - Captures d\'écran disponibles';
+            statusElement.style.color = '#28a745';
+        } else {
+            statusElement.textContent = '⚠️ Environnement non local - Captures d\'écran limitées';
+            statusElement.style.color = '#ffc107';
+        }
+        
+        // Empêcher la soumission du formulaire
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Formulaire soumis ! (simulation)');
+        });
+        
+        // Log des détails pour debug
+        console.log('Détails environnement:', {
+            hostname: window.location.hostname,
+            port: window.location.port,
+            protocol: window.location.protocol,
+            isLocal: isLocal
+        });
+    </script>
+</body>
+</html>

@@ -8,9 +8,12 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 - **Plus de popups intempestives** : L'enregistrement se fait en arrière-plan sans interrompre votre workflow
 - **Justification a posteriori** : Justifiez vos actions quand vous le souhaitez, pas pendant l'action
 - **Indicateur intelligent** : Visualisez vos actions en temps réel avec un compteur incrémental
+- **Captures d'écran automatiques** : Chaque action est accompagnée d'une capture d'écran pour un contexte visuel complet
 
 ### 📋 Liste des Actions en Temps Réel
 - **Vue d'ensemble** : Consultez les 10 dernières actions enregistrées
+- **Captures d'écran visuelles** : Chaque action affiche une miniature de la capture d'écran
+- **Visualisation en plein écran** : Cliquez sur 🔍 pour voir les captures d'écran en grand
 - **Justification flexible** : Cliquez sur "Justifier" pour modifier la description d'une action
 - **Statut visuel** : Actions justifiées (✅) vs actions à justifier (⚠️)
 - **Gestion des actions** : Effacez toutes les actions si nécessaire
@@ -26,6 +29,7 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 - ✅ Génération de sélecteurs CSS uniques pour chaque élément
 - ✅ **Nouveau** : Enregistrement non-intrusif avec justification a posteriori
 - ✅ **Nouveau** : Liste des actions en temps réel avec gestion flexible
+- ✅ **Nouveau** : Captures d'écran automatiques avec visualisation en temps réel
 - ✅ Génération automatique de fichiers TestRail JSON
 - ✅ Log détaillé des sélecteurs et actions
 - ✅ Interface utilisateur moderne et responsive
@@ -70,32 +74,57 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 ### 2. Enregistrer vos actions (Nouveau !)
 
 1. **Interagissez librement** avec la page (plus d'interruptions !)
-2. Chaque clic est automatiquement enregistré en arrière-plan
+2. Chaque clic est automatiquement enregistré en arrière-plan avec capture d'écran
 3. Observez le compteur d'étapes dans l'indicateur
-4. Cliquez sur l'icône 📋 pour voir la liste de vos actions
+4. Utilisez le bouton 📷 pour activer/désactiver les captures d'écran
+5. Cliquez sur l'icône 📋 pour voir la liste de vos actions
 
 ### 3. Gérer vos actions (Nouveau !)
 
 1. **Consultez vos actions** : Cliquez sur 📋 dans l'indicateur
-2. **Justifiez les actions importantes** : Cliquez sur "Justifier" pour modifier la description
-3. **Suivez le statut** : Actions justifiées (✅) vs actions à justifier (⚠️)
-4. **Gérez vos actions** : Effacez toutes les actions avec 🗑️ si nécessaire
+2. **Visualisez les captures d'écran** : Chaque action affiche une miniature de la capture
+3. **Voir en plein écran** : Cliquez sur 🔍 pour voir les captures d'écran en grand
+4. **Justifiez les actions importantes** : Cliquez sur "Justifier" pour modifier la description
+5. **Suivez le statut** : Actions justifiées (✅) vs actions à justifier (⚠️)
+6. **Gérez vos actions** : Effacez toutes les actions avec 🗑️ si nécessaire
 
-### 4. Arrêter et générer les fichiers
+### 4. Interface de visualisation moderne (Nouveau !)
+
+1. **Ouvrir l'interface** : Cliquez sur "📋 Interface de visualisation" dans la popup
+2. **Vue d'ensemble** : Statistiques en temps réel (étapes totales, justifiées, en attente, captures d'écran)
+3. **Filtres intelligents** : Filtrez par statut (toutes, en attente, justifiées, avec captures)
+4. **Gestion avancée** : Interface moderne pour justifier, modifier et réinitialiser les actions
+5. **Visualisation optimisée** : Captures d'écran en plein écran avec modal interactif
+6. **Synchronisation** : Les modifications sont automatiquement synchronisées avec l'enregistrement
+
+### 5. Arrêter et générer les fichiers
 
 1. Une fois vos actions terminées, cliquez sur l'icône Test Recorder
 2. Cliquez sur "⏹ Arrêter l'enregistrement"
 3. Les fichiers suivants seront automatiquement téléchargés :
    - `test-recorder-testrail.json` : Format TestRail API
    - `test-recorder-selector_log.txt` : Log détaillé des actions
+   - `test-recorder-test_data_with_screenshots.json` : Données complètes avec captures d'écran
 
 ## 🧪 Test de l'Extension
 
-Utilisez le fichier `test-simple.html` inclus pour tester toutes les fonctionnalités :
+Utilisez les fichiers de test inclus pour tester toutes les fonctionnalités :
+
+### `test-simple.html` - Test général
 - Formulaire interactif
 - Boutons de différents types
 - Liens de test
 - Instructions détaillées
+
+### `test-https.html` - Test HTTPS
+- Interface moderne avec gradient
+- Test spécifique pour les pages HTTPS
+- Fonctionnalités de sécurité
+
+### `test-local-dev.html` - Test environnement local
+- Détection automatique de l'environnement
+- Affichage des détails (hostname, port, protocole)
+- Test spécifique pour les environnements de développement
 
 ## 📁 Structure des fichiers générés
 
@@ -153,6 +182,21 @@ Pour utiliser les fichiers générés avec TestRail :
    - Ouvrez le fichier `testrail.json`
    - Copiez le contenu dans l'interface TestRail
 
+## 🔒 Sécurité et Limitations
+
+### Captures d'écran
+- **Toutes les pages** : Les captures d'écran fonctionnent sur toutes les pages (HTTP et HTTPS)
+- **Conversion automatique** : Les captures sont automatiquement converties en base64 pour éviter les problèmes de protocole
+- **Aucune restriction** : Plus de limitations basées sur le protocole ou l'environnement
+- **Performance optimisée** : Les captures d'écran sont stockées directement en base64
+
+### Permissions
+- `activeTab` : Accès uniquement à l'onglet actif
+- `scripting` : Injection de scripts pour l'enregistrement
+- `storage` : Stockage local des données
+- `notifications` : Notifications système
+- `tabs` : Accès aux onglets pour les captures d'écran
+
 ## 🛠️ Développement
 
 ### Structure du projet
@@ -164,7 +208,10 @@ test-recorder/
 ├── content.js             # Script injecté (enregistrement non-intrusif)
 ├── background.js          # Service worker
 ├── modal.css              # Styles pour l'indicateur et la liste d'actions
-├── test-simple.html       # Page de test pour valider l'extension
+├── test-simple.html       # Page de test générale
+├── test-https.html        # Page de test pour HTTPS
+├── test-local-dev.html    # Page de test pour environnements locaux
+├── test-recorder-interface.html # Interface de visualisation moderne
 ├── images/                # Icônes de l'extension
 │   ├── icon16.png
 │   ├── icon48.png
@@ -198,6 +245,12 @@ test-recorder/
 - Fermez et rouvrez la popup de l'extension
 - Rechargez la page web
 - Vérifiez que l'extension est bien installée
+
+### Les captures d'écran ne fonctionnent pas
+- **Vérifiez les permissions** : Assurez-vous que l'extension a les permissions nécessaires
+- **Rechargez la page** : Parfois un rechargement est nécessaire après l'installation
+- **Vérifiez la console** : Regardez les messages d'erreur dans la console du navigateur
+- **Toutes les pages supportées** : Les captures d'écran fonctionnent maintenant sur HTTP et HTTPS
 
 ## 🤝 Contribution
 

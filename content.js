@@ -27,6 +27,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === "downloadFiles") {
       // Télécharger les fichiers générés
       downloadFiles(request.files);
+    } else if (request.action === "getTestData") {
+      // Envoyer les données de test à l'interface
+      sendResponse({ success: true, data: testSteps });
+    } else if (request.action === "saveTestData") {
+      // Sauvegarder les données de test depuis l'interface
+      testSteps = request.data;
+      updateStepCount();
+      updateActionList();
+      sendResponse({ success: true });
     }
   } catch (error) {
     console.error('Erreur dans le content script:', error);
@@ -46,19 +55,100 @@ function handleClick(event) {
 
     const selector = generateUniqueSelector(event.target);
     
-    // Enregistrer l'action immédiatement sans modal
+    // Enregistrer l'action de base
     const step = {
       selector: selector, 
       comment: `Action sur ${event.target.tagName.toLowerCase()}${event.target.className ? ' (' + event.target.className + ')' : ''}`,
       timestamp: new Date().toISOString(),
       url: window.location.href,
       element: event.target.tagName.toLowerCase(),
-      needsJustification: true
+      needsJustification: true,
+      screenshot: null
     };
     
-    testSteps.push(step);
-    updateActionList();
+    // Prendre une capture d'écran si activée
+    if (screenshotsEnabled) {
+      takeScreenshot().then(screenshot => {
+        step.screenshot = screenshot;
+        testSteps.push(step);
+        updateActionList();
+      }).catch(error => {
+        console.error('Erreur lors de la capture d\'écran:', error);
+        
+        // Afficher une notification si c'est un problème de sécurité
+        if (error.message.includes('non autorisées sur les pages HTTP')) {
+          showSecurityNotification();
+        }
+        
+        testSteps.push(step);
+        updateActionList();
+      });
+    } else {
+      // Enregistrer directement sans capture d'écran
+      testSteps.push(step);
+      updateActionList();
+    }
   }
+}
+
+async function takeScreenshot() {
+  try {
+    // Demander au background script de prendre la capture d'écran
+    console.log('Demande de capture d\'écran au background script');
+    
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else if (response && response.success) {
+          resolve(response.dataUrl);
+        } else {
+          reject(new Error(response?.error || 'Erreur lors de la capture d\'écran'));
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Erreur lors de la capture d\'écran:', error);
+    throw error;
+  }
+}
+
+
+
+function isLocalDevelopmentEnvironment() {
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  
+  // Détecter les environnements de développement local
+  const localPatterns = [
+    /^localhost$/,
+    /^127\.0\.0\.1$/,
+    /^192\.168\./,
+    /^10\./,
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+    /^qa\./,
+    /^dev\./,
+    /^staging\./,
+    /^test\./,
+    /^local\./,
+    /^\.local$/,
+    /^\.test$/,
+    /^\.dev$/
+  ];
+  
+  // Vérifier si l'hostname correspond à un pattern local
+  const isLocalHostname = localPatterns.some(pattern => pattern.test(hostname));
+  
+  // Vérifier les ports de développement courants
+  const devPorts = ['3000', '3001', '8080', '8000', '5000', '4000', '9000', '4200', '3002', '3003'];
+  const isDevPort = devPorts.includes(port);
+  
+  // Vérifier si c'est une IP locale
+  const isLocalIP = hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1)/);
+  
+  console.log(`Détection environnement local: hostname=${hostname}, port=${port}, isLocalHostname=${isLocalHostname}, isDevPort=${isDevPort}, isLocalIP=${!!isLocalIP}`);
+  
+  return isLocalHostname || isDevPort || isLocalIP;
 }
 
 function isPopupElement(element) {
@@ -133,6 +223,8 @@ function generateUniqueSelector(element) {
 
 // Fonction supprimée - remplacée par le système de justification a posteriori
 
+let screenshotsEnabled = true; // Variable globale pour contrôler les captures d'écran
+
 function showRecordingIndicator() {
   const indicator = document.createElement('div');
   indicator.id = 'test-recorder-indicator';
@@ -142,6 +234,7 @@ function showRecordingIndicator() {
         <span class="recording-dot"></span>
         <span>Enregistrement en cours...</span>
         <span class="step-count">Étapes: 0</span>
+        <button id="test-recorder-screenshots" class="screenshots-btn" title="Captures d'écran">📷</button>
         <button id="test-recorder-toggle" class="toggle-btn">📋</button>
       </div>
       <div id="test-recorder-actions" class="actions-list" style="display: none;">
@@ -160,9 +253,57 @@ function showRecordingIndicator() {
   // Ajouter les gestionnaires d'événements
   document.getElementById('test-recorder-toggle').addEventListener('click', toggleActionsList);
   document.getElementById('test-recorder-clear').addEventListener('click', clearActions);
+  document.getElementById('test-recorder-screenshots').addEventListener('click', toggleScreenshots);
   
   // Mettre à jour le compteur d'étapes
   updateStepCount();
+  updateScreenshotsButton();
+}
+
+function toggleScreenshots() {
+  // Les captures d'écran sont maintenant autorisées sur toutes les pages
+  // grâce à la conversion en base64
+  
+  screenshotsEnabled = !screenshotsEnabled;
+  updateScreenshotsButton();
+  
+  // Afficher une notification
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${screenshotsEnabled ? '#28a745' : '#6c757d'};
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000000;
+  `;
+  
+  let message = screenshotsEnabled ? '📷 Captures d\'écran activées' : '📷 Captures d\'écran désactivées';
+  
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 2000);
+}
+
+function updateScreenshotsButton() {
+  const btn = document.getElementById('test-recorder-screenshots');
+  if (btn) {
+    // Les captures d'écran sont maintenant disponibles sur toutes les pages
+    btn.style.opacity = screenshotsEnabled ? '1' : '0.5';
+    btn.style.cursor = 'pointer';
+    btn.title = screenshotsEnabled ? 'Captures d\'écran activées' : 'Captures d\'écran désactivées';
+  }
+}
+
+function showSecurityNotification() {
+  // Cette fonction n'est plus nécessaire car les captures d'écran
+  // sont maintenant autorisées sur toutes les pages
+  console.log('Notifications de sécurité désactivées - captures d\'écran autorisées partout');
 }
 
 function toggleActionsList() {
@@ -191,6 +332,17 @@ function updateActionList() {
   recentActions.forEach((step, index) => {
     const actionItem = document.createElement('div');
     actionItem.className = 'action-item';
+    
+    // Préparer l'affichage de la capture d'écran
+    const screenshotHtml = step.screenshot ? 
+      `<div class="action-screenshot">
+        <img src="${step.screenshot}" alt="Capture d'écran de l'action" class="screenshot-thumbnail" />
+        <button class="view-screenshot-btn" data-screenshot="${step.screenshot}">🔍</button>
+      </div>` : 
+      `<div class="action-screenshot">
+        <span class="no-screenshot">📷</span>
+      </div>`;
+    
     actionItem.innerHTML = `
       <div class="action-info">
         <span class="action-number">#${testSteps.length - index}</span>
@@ -198,10 +350,13 @@ function updateActionList() {
         <span class="action-comment">${step.comment}</span>
         ${step.needsJustification ? '<span class="needs-justification">⚠️</span>' : ''}
       </div>
-      ${step.needsJustification ? 
-        `<button class="justify-btn" data-index="${testSteps.length - 1 - index}">Justifier</button>` : 
-        `<span class="justified">✅</span>`
-      }
+      <div class="action-controls">
+        ${screenshotHtml}
+        ${step.needsJustification ? 
+          `<button class="justify-btn" data-index="${testSteps.length - 1 - index}">Justifier</button>` : 
+          `<span class="justified">✅</span>`
+        }
+      </div>
     `;
     
     actionsContent.appendChild(actionItem);
@@ -213,6 +368,53 @@ function updateActionList() {
       const index = parseInt(e.target.dataset.index);
       justifyAction(index);
     });
+  });
+  
+  // Ajouter les gestionnaires pour les boutons de visualisation des captures d'écran
+  document.querySelectorAll('.view-screenshot-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const screenshot = e.target.dataset.screenshot;
+      showScreenshotModal(screenshot);
+    });
+  });
+}
+
+function showScreenshotModal(screenshot) {
+  // Créer un modal pour afficher la capture d'écran en grand
+  const modal = document.createElement('div');
+  modal.id = 'screenshot-modal';
+  modal.className = 'screenshot-modal';
+  modal.innerHTML = `
+    <div class="screenshot-modal-content">
+      <div class="screenshot-modal-header">
+        <h3>Capture d'écran de l'action</h3>
+        <button class="close-screenshot-btn">✕</button>
+      </div>
+      <div class="screenshot-modal-body">
+        <img src="${screenshot}" alt="Capture d'écran" class="screenshot-full" />
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Gestionnaires pour fermer le modal
+  modal.querySelector('.close-screenshot-btn').addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+  
+  // Fermer avec Escape
+  document.addEventListener('keydown', function escapeHandler(e) {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', escapeHandler);
+    }
   });
 }
 

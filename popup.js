@@ -108,10 +108,28 @@ document.addEventListener('DOMContentLoaded', () => {
     status.style.border = '1px solid rgba(220, 53, 69, 0.3)';
   }
 
+  // Gestionnaire pour le bouton d'interface de visualisation
+  document.getElementById('viewInterfaceBtn').addEventListener('click', openInterface);
+
   // Écouter les messages du content script pour mettre à jour le compteur
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "stepCountUpdate") {
       stepCount.textContent = request.count;
     }
   });
+
+  // Fonction pour ouvrir l'interface de visualisation
+  async function openInterface() {
+    try {
+      // Créer un nouvel onglet avec l'interface
+      const interfaceUrl = chrome.runtime.getURL('test-recorder-interface.html');
+      await chrome.tabs.create({ url: interfaceUrl });
+      
+      // Fermer le popup
+      window.close();
+    } catch (error) {
+      console.error('Erreur lors de l\'ouverture de l\'interface:', error);
+      showError('Impossible d\'ouvrir l\'interface de visualisation.');
+    }
+  }
 });
