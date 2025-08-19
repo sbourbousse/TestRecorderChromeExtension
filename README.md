@@ -24,6 +24,15 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 - **Contrôle fiable** : Boutons "Démarrer" et "Arrêter" toujours synchronisés
 - **Détection automatique** : L'extension détecte automatiquement si un enregistrement est en cours
 
+### 📄 Export Avancé (Nouveau !)
+- **Format JSON** : Export technique complet avec toutes les métadonnées
+- **Format Markdown** : Export documenté et lisible pour la documentation
+- **Configuration flexible** : Choisissez les propriétés à inclure dans l'export
+- **Gestion des images** : Intégration Base64 ou dossier séparé pour les captures d'écran
+- **Structure organisée** : Sections Action, Expected, Détails Techniques avec tableaux
+- **Résumé détaillé** : Statistiques complètes avec URLs visitées et types d'éléments
+- **Export ZIP** : Fichier ZIP complet avec rapport Markdown et images séparées
+
 ## 📋 Fonctionnalités Principales
 
 - ✅ Enregistrement automatique des clics sur les éléments de la page
@@ -107,6 +116,33 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
    - `test-recorder-selector_log.txt` : Log détaillé des actions
    - `test-recorder-test_data_with_screenshots.json` : Données complètes avec captures d'écran
 
+### 6. Export Avancé (Nouveau !)
+
+#### Export Rapide (JSON)
+1. Ouvrez l'interface de visualisation
+2. Cliquez sur **"💾 Exporter"**
+3. Le fichier JSON est téléchargé automatiquement
+
+#### Export Configuré (JSON ou Markdown)
+1. Ouvrez l'interface de visualisation
+2. Cliquez sur **"⚙️ Config Export"**
+3. Choisissez le format :
+   - **JSON** : Export technique complet
+   - **Markdown** : Export documenté et lisible
+4. Sélectionnez les propriétés à inclure :
+   - ✅ **Action** : Description de l'action
+   - ✅ **Expected** : Résultat attendu
+   - ✅ **Sélecteur** : Sélecteur CSS
+   - ✅ **Élément** : Type d'élément HTML
+   - ✅ **URL** : URL de la page
+   - ✅ **Timestamp** : Date et heure
+   - ✅ **Captures d'écran** : Images des étapes
+   - ✅ **Valeurs** : Anciennes et nouvelles valeurs
+5. Configurez la gestion des images (Markdown uniquement) :
+   - **Intégrer (Base64)** : Images dans le fichier
+   - **Dossier séparé** : Images externes
+6. Cliquez sur **"💾 Exporter"**
+
 ## 🧪 Test de l'Extension
 
 Utilisez les fichiers de test inclus pour tester toutes les fonctionnalités :
@@ -126,6 +162,38 @@ Utilisez les fichiers de test inclus pour tester toutes les fonctionnalités :
 - Détection automatique de l'environnement
 - Affichage des détails (hostname, port, protocole)
 - Test spécifique pour les environnements de développement
+
+### `test-export-markdown.html` - Test Export Markdown (Nouveau !)
+- Page de test spécialement conçue pour tester l'export Markdown
+- Éléments de formulaire variés (input, select, textarea, boutons)
+- Actions de test avec résultats en temps réel
+- Instructions détaillées pour tester les fonctionnalités d'export
+
+### `test-zip-export.html` - Test Export ZIP (Nouveau !)
+- Page de test pour vérifier la fonctionnalité d'export ZIP
+- Test de la bibliothèque JSZip
+- Création de fichiers ZIP avec Markdown et images
+- Validation complète du processus d'export
+
+### `test-jszip-local.html` - Test JSZip Local (Nouveau !)
+- Test simple de la bibliothèque JSZip locale
+- Vérification de la disponibilité de JSZip
+- Création d'un ZIP de test avec fichiers et dossiers
+- Validation que le fichier local fonctionne correctement
+
+## 📚 Documentation Supplémentaire
+
+### `EXPORT_FEATURES.md` - Guide Complet Export
+- Documentation détaillée des fonctionnalités d'export
+- Exemples de formats JSON et Markdown
+- Guide de personnalisation et configuration
+- Cas d'usage et bonnes pratiques
+
+### `exemple-export-markdown.md` - Exemple de Rapport
+- Exemple complet d'un rapport Markdown généré
+- Structure et formatage des sections
+- Intégration des captures d'écran
+- Résumé détaillé avec statistiques
 
 ## 📁 Structure des fichiers générés
 

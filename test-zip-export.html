@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Export ZIP - Test Recorder</title>
+    <script src="libs/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button.success {
+            background: #28a745;
+        }
+        
+        .test-button.danger {
+            background: #dc3545;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Test Export ZIP - Test Recorder</h1>
+        
+        <div class="test-section">
+            <h2>🔧 Test de la Bibliothèque JSZip</h2>
+            <p>Vérification que la bibliothèque JSZip est bien chargée :</p>
+            
+            <button class="test-button" id="test-jszip">Test JSZip</button>
+            <div id="jszip-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📄 Test de Création de Contenu Markdown</h2>
+            <p>Génération d'un contenu Markdown de test :</p>
+            
+            <button class="test-button" id="test-markdown">Générer Markdown</button>
+            <div id="markdown-result" class="result" style="display: none;"></div>
+            <div id="markdown-preview" class="preview" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🖼️ Test de Création d'Images</h2>
+            <p>Génération d'images de test (Base64) :</p>
+            
+            <button class="test-button" id="test-images">Créer Images Test</button>
+            <div id="images-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📦 Test de Création de ZIP</h2>
+            <p>Création d'un fichier ZIP avec Markdown et images :</p>
+            
+            <button class="test-button success" id="test-zip">Créer ZIP Complet</button>
+            <div id="zip-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 Données de Test</h2>
+            <p>Données simulées pour les tests :</p>
+            
+            <div class="preview" id="test-data-display">
+                Chargement des données de test...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données de test similaires à celles de l'extension
+        const testSteps = [
+            {
+                selector: "button#login-btn",
+                comment: "Clic sur le bouton de connexion",
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                element: "button",
+                actionType: "click",
+                needsJustification: false,
+                screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            },
+            {
+                selector: "input#email",
+                comment: "Saisie de l'adresse email",
+                timestamp: new Date(Date.now() + 5000).toISOString(),
+                url: window.location.href,
+                element: "input",
+                actionType: "change",
+                oldValue: "",
+                newValue: "test@example.com",
+                needsJustification: true,
+                screenshot: null
+            },
+            {
+                selector: "input#password",
+                comment: "Saisie du mot de passe",
+                timestamp: new Date(Date.now() + 10000).toISOString(),
+                url: window.location.href,
+                element: "input",
+                actionType: "change",
+                oldValue: "",
+                newValue: "********",
+                needsJustification: false,
+                screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+        ];
+
+        // Afficher les données de test
+        document.getElementById('test-data-display').innerHTML = 
+            JSON.stringify(testSteps, null, 2);
+
+        // Test de la bibliothèque JSZip
+        document.getElementById('test-jszip').addEventListener('click', function() {
+            const resultDiv = document.getElementById('jszip-result');
+            
+            if (window.JSZip) {
+                resultDiv.innerHTML = '✅ JSZip est disponible et fonctionnel';
+                resultDiv.className = 'result success';
+                resultDiv.style.display = 'block';
+            } else {
+                resultDiv.innerHTML = '❌ JSZip n\'est pas disponible';
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+            }
+        });
+
+        // Test de génération de contenu Markdown
+        document.getElementById('test-markdown').addEventListener('click', function() {
+            const resultDiv = document.getElementById('markdown-result');
+            const previewDiv = document.getElementById('markdown-preview');
+            
+            // Générer un contenu Markdown de test
+            let markdownContent = `# Test Recorder - Rapport de Test\n\n`;
+            markdownContent += `> 📅 **Date d'export:** ${new Date().toLocaleString('fr-FR')}\n`;
+            markdownContent += `> 📊 **Total d'étapes:** ${testSteps.length}\n\n`;
+            
+            testSteps.forEach((step, index) => {
+                markdownContent += `## Étape ${index + 1}\n\n`;
+                markdownContent += `### Action\n\n${step.comment}\n\n`;
+                markdownContent += `### Détails\n\n`;
+                markdownContent += `- **Sélecteur:** \`${step.selector}\`\n`;
+                markdownContent += `- **Élément:** \`${step.element}\`\n`;
+                markdownContent += `- **Type:** \`${step.actionType}\`\n\n`;
+                
+                if (step.screenshot) {
+                    markdownContent += `### Capture d'Écran\n\n![Étape ${index + 1}](./images/screenshot-step-${index + 1}.png)\n\n`;
+                }
+                
+                markdownContent += `---\n\n`;
+            });
+            
+            resultDiv.innerHTML = `✅ Contenu Markdown généré (${markdownContent.length} caractères)`;
+            resultDiv.className = 'result success';
+            resultDiv.style.display = 'block';
+            
+            previewDiv.innerHTML = markdownContent.substring(0, 500) + '...';
+            previewDiv.style.display = 'block';
+        });
+
+        // Test de création d'images
+        document.getElementById('test-images').addEventListener('click', function() {
+            const resultDiv = document.getElementById('images-result');
+            
+            const imagesWithScreenshots = testSteps.filter(step => step.screenshot);
+            
+            resultDiv.innerHTML = `✅ ${imagesWithScreenshots.length} image(s) de test créée(s)`;
+            resultDiv.className = 'result success';
+            resultDiv.style.display = 'block';
+        });
+
+        // Test de création de ZIP
+        document.getElementById('test-zip').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('zip-result');
+            
+            if (!window.JSZip) {
+                resultDiv.innerHTML = '❌ JSZip n\'est pas disponible';
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '⏳ Création du ZIP en cours...';
+                resultDiv.className = 'result info';
+                resultDiv.style.display = 'block';
+                
+                const zip = new JSZip();
+                
+                // Contenu Markdown
+                let markdownContent = `# Test Recorder - Rapport de Test\n\n`;
+                markdownContent += `> 📅 **Date d'export:** ${new Date().toLocaleString('fr-FR')}\n`;
+                markdownContent += `> 📊 **Total d'étapes:** ${testSteps.length}\n\n`;
+                
+                testSteps.forEach((step, index) => {
+                    markdownContent += `## Étape ${index + 1}\n\n`;
+                    markdownContent += `### Action\n\n${step.comment}\n\n`;
+                    markdownContent += `### Détails\n\n`;
+                    markdownContent += `- **Sélecteur:** \`${step.selector}\`\n`;
+                    markdownContent += `- **Élément:** \`${step.element}\`\n`;
+                    markdownContent += `- **Type:** \`${step.actionType}\`\n\n`;
+                    
+                    if (step.screenshot) {
+                        markdownContent += `### Capture d'Écran\n\n![Étape ${index + 1}](./images/screenshot-step-${index + 1}.png)\n\n`;
+                    }
+                    
+                    markdownContent += `---\n\n`;
+                });
+                
+                // Ajouter le fichier Markdown principal
+                zip.file('README.md', markdownContent);
+                
+                // Créer un dossier images
+                const imagesFolder = zip.folder('images');
+                
+                // Ajouter les images
+                let imageCount = 0;
+                testSteps.forEach((step, index) => {
+                    if (step.screenshot) {
+                        const base64Data = step.screenshot.split(',')[1];
+                        if (base64Data) {
+                            const imageFileName = `screenshot-step-${index + 1}.png`;
+                            imagesFolder.file(imageFileName, base64Data, {base64: true});
+                            imageCount++;
+                        }
+                    }
+                });
+                
+                // Ajouter un README pour le dossier images
+                const imagesReadme = `# Dossier Images
+
+Ce dossier contient les captures d'écran des étapes d'enregistrement.
+
+## Fichiers inclus:
+${testSteps.map((step, index) => {
+    if (step.screenshot) {
+        return `- \`screenshot-step-${index + 1}.png\` : Capture de l'étape ${index + 1} - ${step.comment}`;
+    }
+    return null;
+}).filter(Boolean).join('\n')}
+
+## Total: ${imageCount} image(s)
+
+*Généré automatiquement par Test Recorder*`;
+                
+                imagesFolder.file('README.md', imagesReadme);
+                
+                // Générer le ZIP
+                const zipBlob = await zip.generateAsync({type: 'blob'});
+                
+                // Télécharger le ZIP
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `test-recorder-test-${new Date().toISOString().split('T')[0]}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Nettoyer
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                resultDiv.innerHTML = `✅ ZIP créé avec succès ! (${imageCount} images, ${markdownContent.length} caractères)`;
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                console.error('Erreur lors de la création du ZIP:', error);
+                resultDiv.innerHTML = `❌ Erreur lors de la création du ZIP: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        });
+    </script>
+</body>
+</html> 

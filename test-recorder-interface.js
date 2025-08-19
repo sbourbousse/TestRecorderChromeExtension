@@ -579,6 +579,303 @@ function exportFileData() {
     showNotification(`✅ ${testSteps.length} étapes exportées avec succès`, 'success');
 }
 
+// Fonction pour ouvrir le modal de configuration d'export
+function openExportConfigDialog() {
+    const dialog = document.getElementById('export-config-dialog');
+    if (dialog) {
+        dialog.showModal();
+    }
+}
+
+// Fonction pour fermer le modal de configuration d'export
+function closeExportConfigDialog() {
+    const dialog = document.getElementById('export-config-dialog');
+    if (dialog) {
+        dialog.close();
+    }
+}
+
+// Fonction pour obtenir la configuration d'export depuis le modal
+function getExportConfig() {
+    const format = document.querySelector('input[name="export-format"]:checked').value;
+    const selectedProps = Array.from(document.querySelectorAll('input[name="export-props"]:checked'))
+        .map(input => input.value);
+    const imageHandling = document.querySelector('input[name="image-handling"]:checked').value;
+    
+    return {
+        format,
+        properties: selectedProps,
+        imageHandling
+    };
+}
+
+// Fonction pour exporter en Markdown
+function exportToMarkdown(config) {
+    if (testSteps.length === 0) {
+        showNotification('❌ Aucune donnée à exporter', 'error');
+        return;
+    }
+
+    const { properties, imageHandling } = config;
+    
+    // Créer le contenu Markdown
+    let markdownContent = `# Test Recorder - Rapport d'Enregistrement\n\n`;
+    markdownContent += `> 📅 **Date d'export:** ${new Date().toLocaleString('fr-FR')}\n`;
+    markdownContent += `> 📊 **Total d'étapes:** ${testSteps.length}\n`;
+    markdownContent += `> ✅ **Étapes justifiées:** ${testSteps.filter(step => !step.needsJustification).length}\n`;
+    markdownContent += `> ⚠️ **Étapes en attente:** ${testSteps.filter(step => step.needsJustification).length}\n`;
+    markdownContent += `> 📷 **Captures d'écran:** ${testSteps.filter(step => step.screenshot).length}\n\n`;
+    
+    // Ajouter un tableau de contenu si il y a beaucoup d'étapes
+    if (testSteps.length > 5) {
+        markdownContent += `## 📋 Tableau des Matières\n\n`;
+        testSteps.forEach((step, index) => {
+            const actionType = step.actionType === 'click' ? '🖱️' : '✏️';
+            const status = step.needsJustification ? '⚠️' : '✅';
+            markdownContent += `${index + 1}. [${actionType} ${step.comment.substring(0, 50)}...]($etape-${index + 1}) ${status}\n`;
+        });
+        markdownContent += `\n---\n\n`;
+    }
+
+    // Traiter chaque étape
+    testSteps.forEach((step, index) => {
+        const actionType = step.actionType === 'click' ? '🖱️' : '✏️';
+        const status = step.needsJustification ? '⚠️ En attente' : '✅ Justifiée';
+        
+        markdownContent += `## ${actionType} Étape ${index + 1} - ${status}\n\n`;
+        
+        // Action
+        if (properties.includes('action')) {
+            markdownContent += `### 🎯 Action\n\n`;
+            markdownContent += `**${step.comment}**\n\n`;
+        }
+        
+        // Expected (utilise le commentaire comme expected par défaut)
+        if (properties.includes('expected')) {
+            markdownContent += `### ✅ Expected\n\n`;
+            if (step.actionType === 'click') {
+                markdownContent += `L'élément \`${step.selector}\` doit être cliqué avec succès.\n\n`;
+            } else if (step.actionType === 'change') {
+                markdownContent += `La valeur de l'élément \`${step.selector}\` doit être modifiée de \`"${step.oldValue}"\` vers \`"${step.newValue}"\`.\n\n`;
+            } else {
+                markdownContent += `L'action "${step.comment}" doit être exécutée avec succès.\n\n`;
+            }
+        }
+        
+        // Détails techniques
+        if (properties.includes('selector') || properties.includes('element') || 
+            properties.includes('url') || properties.includes('timestamp') || 
+            properties.includes('values')) {
+            
+            markdownContent += `### 🔧 Détails Techniques\n\n`;
+            markdownContent += `| Propriété | Valeur |\n`;
+            markdownContent += `|-----------|--------|\n`;
+            
+            if (properties.includes('selector')) {
+                markdownContent += `| **Sélecteur** | \`${step.selector}\` |\n`;
+            }
+            
+            if (properties.includes('element')) {
+                markdownContent += `| **Élément** | \`${step.element}\` |\n`;
+            }
+            
+            if (properties.includes('url')) {
+                markdownContent += `| **URL** | \`${step.url}\` |\n`;
+            }
+            
+            if (properties.includes('timestamp')) {
+                markdownContent += `| **Timestamp** | \`${new Date(step.timestamp).toLocaleString('fr-FR')}\` |\n`;
+            }
+            
+            if (properties.includes('values') && step.actionType === 'change' && step.oldValue !== step.newValue) {
+                markdownContent += `| **Valeurs** | \`"${step.oldValue}"\` → \`"${step.newValue}"\` |\n`;
+            }
+            
+            markdownContent += `\n`;
+        }
+        
+        // Capture d'écran
+        if (properties.includes('screenshot') && step.screenshot) {
+            markdownContent += `### 📷 Capture d'Écran\n\n`;
+            
+            if (imageHandling === 'embed') {
+                // Intégrer l'image en Base64
+                markdownContent += `![Capture d'écran - Étape ${index + 1}](${step.screenshot})\n\n`;
+                markdownContent += `*<sub>Image intégrée en Base64 - Étape ${index + 1}</sub>*\n\n`;
+            } else {
+                // Référence vers un fichier externe
+                const imageFileName = `screenshot-step-${index + 1}.png`;
+                markdownContent += `![Capture d'écran - Étape ${index + 1}](./images/${imageFileName})\n\n`;
+                markdownContent += `*<sub>Image externe: \`./images/${imageFileName}\`</sub>*\n\n`;
+            }
+        }
+        
+        markdownContent += `---\n\n`;
+    });
+    
+    // Ajouter un résumé détaillé à la fin
+    markdownContent += `## 📊 Résumé Détaillé\n\n`;
+    
+    const clickSteps = testSteps.filter(step => step.actionType === 'click');
+    const changeSteps = testSteps.filter(step => step.actionType === 'change');
+    const screenshotSteps = testSteps.filter(step => step.screenshot);
+    const justifiedSteps = testSteps.filter(step => !step.needsJustification);
+    const pendingSteps = testSteps.filter(step => step.needsJustification);
+    
+    markdownContent += `### Statistiques Générales\n\n`;
+    markdownContent += `| Métrique | Valeur |\n`;
+    markdownContent += `|----------|--------|\n`;
+    markdownContent += `| **Total d'étapes** | ${testSteps.length} |\n`;
+    markdownContent += `| **Actions de clic** | ${clickSteps.length} |\n`;
+    markdownContent += `| **Modifications** | ${changeSteps.length} |\n`;
+    markdownContent += `| **Étapes avec captures** | ${screenshotSteps.length} |\n`;
+    markdownContent += `| **Étapes justifiées** | ${justifiedSteps.length} |\n`;
+    markdownContent += `| **Étapes en attente** | ${pendingSteps.length} |\n\n`;
+    
+    // Ajouter des détails sur les URLs visitées
+    const uniqueUrls = [...new Set(testSteps.map(step => step.url))];
+    if (uniqueUrls.length > 1) {
+        markdownContent += `### 🌐 URLs Visitées\n\n`;
+        uniqueUrls.forEach(url => {
+            const stepsOnUrl = testSteps.filter(step => step.url === url).length;
+            markdownContent += `- \`${url}\` (${stepsOnUrl} étapes)\n`;
+        });
+        markdownContent += `\n`;
+    }
+    
+    // Ajouter des détails sur les types d'éléments
+    const elementTypes = {};
+    testSteps.forEach(step => {
+        elementTypes[step.element] = (elementTypes[step.element] || 0) + 1;
+    });
+    
+    if (Object.keys(elementTypes).length > 1) {
+        markdownContent += `### 🏷️ Types d'Éléments\n\n`;
+        Object.entries(elementTypes).forEach(([element, count]) => {
+            markdownContent += `- \`${element}\`: ${count} action(s)\n`;
+        });
+        markdownContent += `\n`;
+    }
+    
+    markdownContent += `---\n\n`;
+    markdownContent += `*📝 Rapport généré automatiquement par Test Recorder*\n`;
+    markdownContent += `*🕒 Généré le ${new Date().toLocaleString('fr-FR')}*\n`;
+    
+    // Créer le blob et télécharger
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    // Créer le lien de téléchargement
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `test-recorder-report-${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Nettoyer
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Si on utilise un dossier séparé pour les images, créer un ZIP avec les images
+    if (imageHandling === 'folder' && testSteps.some(step => step.screenshot)) {
+        createMarkdownZip(markdownContent, config);
+    } else {
+        showNotification(`✅ Rapport Markdown exporté avec succès`, 'success');
+    }
+}
+
+// Fonction pour créer un ZIP avec les images (si nécessaire)
+function createImageZip() {
+    // Cette fonction nécessiterait une bibliothèque comme JSZip
+    // Pour l'instant, on affiche juste une notification
+    showNotification(`📁 Les images seront sauvegardées dans un dossier séparé`, 'info');
+}
+
+// Fonction pour créer un ZIP avec le rapport Markdown et les images
+async function createMarkdownZip(markdownContent, config) {
+    if (!window.JSZip) {
+        showNotification('❌ Bibliothèque JSZip non disponible', 'error');
+        return;
+    }
+
+    try {
+        const zip = new JSZip();
+        
+        // Ajouter le fichier Markdown principal
+        zip.file('README.md', markdownContent);
+        
+        // Créer un dossier images
+        const imagesFolder = zip.folder('images');
+        
+        // Ajouter les images des étapes qui ont des captures d'écran
+        let imageCount = 0;
+        testSteps.forEach((step, index) => {
+            if (step.screenshot && config.properties.includes('screenshot')) {
+                // Extraire les données Base64 de l'image
+                const base64Data = step.screenshot.split(',')[1];
+                if (base64Data) {
+                    const imageFileName = `screenshot-step-${index + 1}.png`;
+                    imagesFolder.file(imageFileName, base64Data, {base64: true});
+                    imageCount++;
+                }
+            }
+        });
+        
+        // Ajouter un fichier README pour le dossier images
+        const imagesReadme = `# Dossier Images
+
+Ce dossier contient les captures d'écran des étapes d'enregistrement.
+
+## Fichiers inclus:
+${testSteps.map((step, index) => {
+    if (step.screenshot && config.properties.includes('screenshot')) {
+        return `- \`screenshot-step-${index + 1}.png\` : Capture de l'étape ${index + 1} - ${step.comment}`;
+    }
+    return null;
+}).filter(Boolean).join('\n')}
+
+## Total: ${imageCount} image(s)
+
+*Généré automatiquement par Test Recorder*`;
+        
+        imagesFolder.file('README.md', imagesReadme);
+        
+        // Générer le ZIP
+        const zipBlob = await zip.generateAsync({type: 'blob'});
+        
+        // Télécharger le ZIP
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `test-recorder-report-${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Nettoyer
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification(`✅ ZIP créé avec succès (${imageCount} images)`, 'success');
+        
+    } catch (error) {
+        console.error('Erreur lors de la création du ZIP:', error);
+        showNotification('❌ Erreur lors de la création du ZIP', 'error');
+    }
+}
+
+// Fonction pour exporter avec configuration
+function exportWithConfig() {
+    const config = getExportConfig();
+    
+    if (config.format === 'markdown') {
+        exportToMarkdown(config);
+    } else {
+        exportFileData(); // Export JSON par défaut
+    }
+    
+    closeExportConfigDialog();
+}
+
 // Fonction pour afficher des notifications
 function showNotification(message, type = 'info') {
     // Supprimer les notifications existantes
@@ -659,6 +956,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestionnaire pour le bouton d'export de fichier
     document.getElementById('export-file-btn').addEventListener('click', exportFileData);
+    
+    // Gestionnaire pour le bouton de configuration d'export
+    document.getElementById('export-config-btn').addEventListener('click', openExportConfigDialog);
+    
+    // Gestionnaires pour le modal de configuration d'export
+    document.getElementById('cancel-export-config').addEventListener('click', closeExportConfigDialog);
+    document.getElementById('confirm-export-config').addEventListener('click', exportWithConfig);
     
     // Gestionnaire pour l'input de fichier
     document.getElementById('file-input').addEventListener('change', handleFileSelect);

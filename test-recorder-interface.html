@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Recorder - Interface de Visualisation</title>
+    <script src="libs/jszip.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -497,18 +498,103 @@
                     <button class="btn btn-primary" id="refresh-btn" style="font-size: 0.9em; padding: 8px 16px;">🔄 Rafraîchir</button>
                     <button class="btn btn-secondary" id="load-file-btn" style="font-size: 0.9em; padding: 8px 16px;">📁 Charger</button>
                     <button class="btn btn-secondary" id="export-file-btn" style="font-size: 0.9em; padding: 8px 16px;">💾 Exporter</button>
+                    <button class="btn btn-primary" id="export-config-btn" style="font-size: 0.9em; padding: 8px 16px;">⚙️ Config Export</button>
                     <input type="file" id="file-input" accept=".json" style="display: none;">
                 </div>
             </div>
-                         <div class="filter-buttons">
-                 <button class="filter-btn active" data-filter="all">Toutes</button>
-                 <button class="filter-btn" data-filter="pending">En attente</button>
-                 <button class="filter-btn" data-filter="justified">Justifiées</button>
-                 <button class="filter-btn" data-filter="with-screenshots">Avec captures</button>
-                 <button class="filter-btn" data-filter="click">🖱️ Clics</button>
-                 <button class="filter-btn" data-filter="change">✏️ Modifications</button>
-             </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Toutes</button>
+                <button class="filter-btn" data-filter="pending">En attente</button>
+                <button class="filter-btn" data-filter="justified">Justifiées</button>
+                <button class="filter-btn" data-filter="with-screenshots">Avec captures</button>
+                <button class="filter-btn" data-filter="click">🖱️ Clics</button>
+                <button class="filter-btn" data-filter="change">✏️ Modifications</button>
+            </div>
         </div>
+
+        <!-- Modal de configuration d'export -->
+        <dialog id="export-config-dialog" style="width: 600px; max-width: 90vw;">
+            <div class="dialog-content" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: #4a5568;">⚙️ Configuration d'Export</h2>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #4a5568;">
+                        📄 Format d'export:
+                    </label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="export-format" value="json" checked>
+                            <span>JSON</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="export-format" value="markdown">
+                            <span>Markdown</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #4a5568;">
+                        📋 Propriétés à inclure:
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="action" checked>
+                            <span>Action</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="expected" checked>
+                            <span>Expected</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="selector" checked>
+                            <span>Sélecteur</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="element" checked>
+                            <span>Élément</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="url" checked>
+                            <span>URL</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="timestamp" checked>
+                            <span>Timestamp</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="screenshot" checked>
+                            <span>Captures d'écran</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="export-props" value="values" checked>
+                            <span>Valeurs (ancien/nouveau)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #4a5568;">
+                        📁 Gestion des images (Markdown):
+                    </label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="image-handling" value="embed" checked>
+                            <span>Intégrer (Base64)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="image-handling" value="folder">
+                            <span>Dossier séparé</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="cancel-export-config">Annuler</button>
+                    <button class="btn btn-primary" id="confirm-export-config">💾 Exporter</button>
+                </div>
+            </div>
+        </dialog>
 
         <div class="steps-container" id="steps-container">
             <!-- Les étapes seront générées ici -->
