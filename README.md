@@ -17,6 +17,7 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 - **Justification flexible** : Cliquez sur "Justifier" pour modifier la description d'une action
 - **Statut visuel** : Actions justifiées (✅) vs actions à justifier (⚠️)
 - **Gestion des actions** : Effacez toutes les actions si nécessaire
+- **Highlight visuel** : Outline rouge sur les éléments cliqués pour une meilleure visibilité dans les captures
 
 ### 🔄 Synchronisation Améliorée
 - **État persistant** : La popup se souvient de l'état d'enregistrement
@@ -92,9 +93,9 @@ Une extension Chrome pour enregistrer automatiquement vos actions sur une page w
 
 1. **Ouvrir l'interface** : Cliquez sur "📋 Interface de visualisation" dans la popup
 2. **Vue d'ensemble** : Statistiques en temps réel (étapes totales, justifiées, en attente, captures d'écran)
-3. **Filtres intelligents** : Filtrez par statut (toutes, en attente, justifiées, avec captures)
-4. **Gestion avancée** : Interface moderne pour justifier, modifier et réinitialiser les actions
-5. **Visualisation optimisée** : Captures d'écran en plein écran avec modal interactif
+3. **Filtres intelligents** : Filtrez par statut (toutes, en attente, justifiées, avec captures) et par type d'action (clics, modifications)
+4. **Gestion avancée** : Interface moderne pour justifier, modifier, réinitialiser et supprimer les actions
+5. **Visualisation optimisée** : Captures d'écran en plein écran avec modal interactif utilisant l'élément `<dialog>` natif
 6. **Synchronisation** : Les modifications sont automatiquement synchronisées avec l'enregistrement
 
 ### 5. Arrêter et générer les fichiers

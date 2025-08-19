@@ -320,6 +320,29 @@
   51%, 100% { opacity: 0.3; }
 }
 
+/* Styles pour le highlight des éléments cliqués */
+.test-recorder-highlighted {
+  animation: highlightPulse 0.8s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    outline: 4px solid #ff4444;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.4);
+  }
+  50% {
+    outline: 5px solid #ff0000;
+    outline-offset: 5px;
+    box-shadow: 0 0 0 8px rgba(255, 0, 0, 0.6);
+  }
+  100% {
+    outline: 4px solid #ff4444;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.4);
+  }
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .modal-content {

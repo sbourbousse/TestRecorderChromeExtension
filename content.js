@@ -12,11 +12,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "startRecording") {
       recording = true;
       document.addEventListener('click', handleClick, true);
+      document.addEventListener('change', handleChange, true);
       showRecordingIndicator();
       console.log('Enregistrement démarré');
     } else if (request.action === "stopRecording") {
       recording = false;
       document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('change', handleChange, true);
       hideRecordingIndicator();
       console.log('Enregistrement arrêté, génération des fichiers...');
       chrome.runtime.sendMessage({ action: "generateFiles", data: testSteps });
@@ -55,38 +57,142 @@ function handleClick(event) {
 
     const selector = generateUniqueSelector(event.target);
     
+    // Ajouter un highlight visuel sur l'élément cliqué
+    highlightElement(event.target);
+    
     // Enregistrer l'action de base
     const step = {
       selector: selector, 
-      comment: `Action sur ${event.target.tagName.toLowerCase()}${event.target.className ? ' (' + event.target.className + ')' : ''}`,
+      comment: `Clic sur ${event.target.tagName.toLowerCase()}${event.target.className ? ' (' + event.target.className + ')' : ''}`,
       timestamp: new Date().toISOString(),
       url: window.location.href,
       element: event.target.tagName.toLowerCase(),
+      actionType: 'click',
       needsJustification: true,
       screenshot: null
     };
     
     // Prendre une capture d'écran si activée
     if (screenshotsEnabled) {
-      takeScreenshot().then(screenshot => {
-        step.screenshot = screenshot;
-        testSteps.push(step);
-        updateActionList();
-      }).catch(error => {
-        console.error('Erreur lors de la capture d\'écran:', error);
-        
-        // Afficher une notification si c'est un problème de sécurité
-        if (error.message.includes('non autorisées sur les pages HTTP')) {
-          showSecurityNotification();
-        }
-        
-        testSteps.push(step);
-        updateActionList();
-      });
+      // Attendre que l'encadré soit bien visible avant de prendre la capture
+      setTimeout(() => {
+        takeScreenshot().then(screenshot => {
+          step.screenshot = screenshot;
+          testSteps.push(step);
+          updateActionList();
+          // Retirer le highlight après la capture
+          removeHighlight(event.target);
+        }).catch(error => {
+          console.error('Erreur lors de la capture d\'écran:', error);
+          
+          // Afficher une notification si c'est un problème de sécurité
+          if (error.message.includes('non autorisées sur les pages HTTP')) {
+            showSecurityNotification();
+          }
+          
+          testSteps.push(step);
+          updateActionList();
+          // Retirer le highlight même en cas d'erreur
+          removeHighlight(event.target);
+        });
+      }, 300); // Délai de 300ms pour que l'encadré soit bien visible
     } else {
       // Enregistrer directement sans capture d'écran
       testSteps.push(step);
       updateActionList();
+      // Retirer le highlight après un délai
+      setTimeout(() => removeHighlight(event.target), 1000);
+    }
+  }
+}
+
+function handleChange(event) {
+  if (recording) {
+    // Ignorer les changements sur les éléments de la popup de l'extension
+    if (isPopupElement(event.target)) {
+      return;
+    }
+    
+    const selector = generateUniqueSelector(event.target);
+    const element = event.target;
+    
+    // Ajouter un highlight visuel sur l'élément modifié
+    highlightElement(element);
+    
+    // Obtenir les valeurs avant et après le changement
+    let oldValue = '';
+    let newValue = '';
+    
+    // Gérer différents types d'éléments
+    if (element.type === 'checkbox' || element.type === 'radio') {
+      oldValue = element.defaultChecked ? 'checked' : 'unchecked';
+      newValue = element.checked ? 'checked' : 'unchecked';
+    } else if (element.tagName === 'SELECT') {
+      oldValue = element.options[element.selectedIndex]?.text || '';
+      newValue = element.options[element.selectedIndex]?.text || '';
+    } else if (element.type === 'file') {
+      oldValue = 'Aucun fichier';
+      newValue = element.files.length > 0 ? `${element.files.length} fichier(s) sélectionné(s)` : 'Aucun fichier';
+    } else {
+      // Pour les inputs text, textarea, etc.
+      oldValue = element.defaultValue || '';
+      newValue = element.value || '';
+    }
+    
+    // Créer le commentaire avec les valeurs
+    let comment = `Modification de ${element.tagName.toLowerCase()}`;
+    if (element.className) {
+      comment += ` (${element.className})`;
+    }
+    
+    if (oldValue !== newValue) {
+      comment += ` : "${oldValue}" → "${newValue}"`;
+    }
+    
+    // Enregistrer l'action de base
+    const step = {
+      selector: selector, 
+      comment: comment,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      element: element.tagName.toLowerCase(),
+      actionType: 'change',
+      oldValue: oldValue,
+      newValue: newValue,
+      needsJustification: true,
+      screenshot: null
+    };
+    
+    // Prendre une capture d'écran si activée
+    if (screenshotsEnabled) {
+      // Attendre que l'encadré soit bien visible avant de prendre la capture
+      setTimeout(() => {
+        takeScreenshot().then(screenshot => {
+          step.screenshot = screenshot;
+          testSteps.push(step);
+          updateActionList();
+          // Retirer le highlight après la capture
+          removeHighlight(element);
+        }).catch(error => {
+          console.error('Erreur lors de la capture d\'écran:', error);
+          
+          // Afficher une notification si c'est un problème de sécurité
+          if (error.message.includes('non autorisées sur les pages HTTP')) {
+            showSecurityNotification();
+          }
+          
+          testSteps.push(step);
+          updateActionList();
+          // Retirer le highlight même en cas d'erreur
+          removeHighlight(element);
+        });
+      }, 300); // Délai de 300ms pour que l'encadré soit bien visible
+    } else {
+      // Enregistrer directement sans capture d'écran
+      testSteps.push(step);
+      updateActionList();
+      // Retirer le highlight après un délai
+      setTimeout(() => removeHighlight(element), 1000);
     }
   }
 }
@@ -219,6 +325,53 @@ function generateUniqueSelector(element) {
         element = element.parentElement;
     }
     return path.join(' > ');
+}
+
+// Fonction pour ajouter un highlight visuel sur un élément
+function highlightElement(element) {
+    // Sauvegarder les styles originaux
+    element._originalStyles = {
+        outline: element.style.outline,
+        outlineOffset: element.style.outlineOffset,
+        boxShadow: element.style.boxShadow,
+        transition: element.style.transition,
+        zIndex: element.style.zIndex,
+        position: element.style.position
+    };
+    
+    // Appliquer le highlight
+    element.style.outline = '4px solid #ff4444';
+    element.style.outlineOffset = '3px';
+    element.style.boxShadow = '0 0 0 4px rgba(255, 68, 68, 0.4)';
+    element.style.transition = 'all 0.3s ease-in-out';
+    element.style.zIndex = '999999';
+    
+    // S'assurer que l'élément est visible
+    if (getComputedStyle(element).position === 'static') {
+        element.style.position = 'relative';
+    }
+    
+    // Ajouter une classe pour identifier les éléments highlightés
+    element.classList.add('test-recorder-highlighted');
+}
+
+// Fonction pour retirer le highlight d'un élément
+function removeHighlight(element) {
+    if (element._originalStyles) {
+        // Restaurer les styles originaux
+        element.style.outline = element._originalStyles.outline;
+        element.style.outlineOffset = element._originalStyles.outlineOffset;
+        element.style.boxShadow = element._originalStyles.boxShadow;
+        element.style.transition = element._originalStyles.transition;
+        element.style.zIndex = element._originalStyles.zIndex;
+        element.style.position = element._originalStyles.position;
+        
+        // Nettoyer les références
+        delete element._originalStyles;
+    }
+    
+    // Retirer la classe de highlight
+    element.classList.remove('test-recorder-highlighted');
 }
 
 // Fonction supprimée - remplacée par le système de justification a posteriori

@@ -54,37 +54,56 @@ function loadTestData() {
             }
         });
     } else {
-        // Fallback pour les données d'exemple si l'extension n'est pas disponible
-        console.log('Extension non disponible, utilisation des données d\'exemple');
-        const sampleData = [
-            {
-                selector: "button.login-btn",
-                comment: "Cliquer sur le bouton de connexion",
-                timestamp: "2025-01-16T10:30:00.000Z",
-                url: "https://example.com/login",
-                element: "button",
-                needsJustification: true,
-                screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-            },
-            {
-                selector: "input#email",
-                comment: "Saisir l'adresse email",
-                timestamp: "2025-01-16T10:30:05.000Z",
-                url: "https://example.com/login",
-                element: "input",
-                needsJustification: false,
-                screenshot: null
-            },
-            {
-                selector: "input#password",
-                comment: "Saisir le mot de passe",
-                timestamp: "2025-01-16T10:30:10.000Z",
-                url: "https://example.com/login",
-                element: "input",
-                needsJustification: true,
-                screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-            }
-        ];
+                 // Fallback pour les données d'exemple si l'extension n'est pas disponible
+         console.log('Extension non disponible, utilisation des données d\'exemple');
+         const sampleData = [
+             {
+                 selector: "button.login-btn",
+                 comment: "Clic sur button (login-btn)",
+                 timestamp: "2025-01-16T10:30:00.000Z",
+                 url: "https://example.com/login",
+                 element: "button",
+                 actionType: "click",
+                 needsJustification: true,
+                 screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+             },
+             {
+                 selector: "input#email",
+                 comment: "Modification de input (email-input) : \"\" → \"user@example.com\"",
+                 timestamp: "2025-01-16T10:30:05.000Z",
+                 url: "https://example.com/login",
+                 element: "input",
+                 actionType: "change",
+                 oldValue: "",
+                 newValue: "user@example.com",
+                 needsJustification: false,
+                 screenshot: null
+             },
+             {
+                 selector: "input#password",
+                 comment: "Modification de input (password-field) : \"\" → \"********\"",
+                 timestamp: "2025-01-16T10:30:10.000Z",
+                 url: "https://example.com/login",
+                 element: "input",
+                 actionType: "change",
+                 oldValue: "",
+                 newValue: "********",
+                 needsJustification: true,
+                 screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+             },
+             {
+                 selector: "select#country",
+                 comment: "Modification de select (country-select) : \"Sélectionner un pays\" → \"France\"",
+                 timestamp: "2025-01-16T10:30:15.000Z",
+                 url: "https://example.com/login",
+                 element: "select",
+                 actionType: "change",
+                 oldValue: "Sélectionner un pays",
+                 newValue: "France",
+                 needsJustification: false,
+                 screenshot: null
+             }
+         ];
 
         testSteps = sampleData;
         updateStats();
@@ -98,11 +117,22 @@ function updateStats() {
     const justifiedSteps = testSteps.filter(step => !step.needsJustification).length;
     const pendingSteps = testSteps.filter(step => step.needsJustification).length;
     const screenshotsCount = testSteps.filter(step => step.screenshot).length;
+    const clickSteps = testSteps.filter(step => step.actionType === 'click').length;
+    const changeSteps = testSteps.filter(step => step.actionType === 'change').length;
 
     document.getElementById('total-steps').textContent = totalSteps;
     document.getElementById('justified-steps').textContent = justifiedSteps;
     document.getElementById('pending-steps').textContent = pendingSteps;
     document.getElementById('screenshots-count').textContent = screenshotsCount;
+    
+    // Mettre à jour les labels pour inclure les types d'actions
+    const justifiedElement = document.getElementById('justified-steps');
+    const pendingElement = document.getElementById('pending-steps');
+    
+    if (justifiedElement && pendingElement) {
+        justifiedElement.textContent = justifiedSteps;
+        pendingElement.textContent = pendingSteps;
+    }
 }
 
 // Fonction pour filtrer les étapes
@@ -132,19 +162,25 @@ function renderSteps() {
     container.style.display = 'grid';
     emptyState.style.display = 'none';
 
-    // Filtrer les étapes selon le filtre actuel
-    let filteredSteps = testSteps;
-    switch (currentFilter) {
-        case 'pending':
-            filteredSteps = testSteps.filter(step => step.needsJustification);
-            break;
-        case 'justified':
-            filteredSteps = testSteps.filter(step => !step.needsJustification);
-            break;
-        case 'with-screenshots':
-            filteredSteps = testSteps.filter(step => step.screenshot);
-            break;
-    }
+         // Filtrer les étapes selon le filtre actuel
+     let filteredSteps = testSteps;
+     switch (currentFilter) {
+         case 'pending':
+             filteredSteps = testSteps.filter(step => step.needsJustification);
+             break;
+         case 'justified':
+             filteredSteps = testSteps.filter(step => !step.needsJustification);
+             break;
+         case 'with-screenshots':
+             filteredSteps = testSteps.filter(step => step.screenshot);
+             break;
+         case 'click':
+             filteredSteps = testSteps.filter(step => step.actionType === 'click');
+             break;
+         case 'change':
+             filteredSteps = testSteps.filter(step => step.actionType === 'change');
+             break;
+     }
 
     container.innerHTML = filteredSteps.map((step, index) => `
         <div class="step-card" data-step-index="${testSteps.indexOf(step)}">
@@ -160,10 +196,30 @@ function renderSteps() {
             
             <div class="step-content">
                 <div class="step-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Action:</span>
-                        <span class="detail-value">${step.comment}</span>
-                    </div>
+                                         <div class="detail-item">
+                         <span class="detail-label">Action:</span>
+                         <span class="detail-value">${step.comment}</span>
+                     </div>
+                     <div class="detail-item">
+                         <span class="detail-label">Type:</span>
+                         <span class="detail-value">
+                             <span class="action-type-badge ${step.actionType === 'click' ? 'action-click' : 'action-change'}">
+                                 ${step.actionType === 'click' ? '🖱️ Clic' : '✏️ Modification'}
+                             </span>
+                         </span>
+                     </div>
+                     ${step.actionType === 'change' && step.oldValue !== step.newValue ? `
+                     <div class="detail-item">
+                         <span class="detail-label">Valeurs:</span>
+                         <span class="detail-value">
+                             <span class="value-change">
+                                 <span class="old-value">"${step.oldValue}"</span>
+                                 <span class="arrow">→</span>
+                                 <span class="new-value">"${step.newValue}"</span>
+                             </span>
+                         </span>
+                     </div>
+                     ` : ''}
                     <div class="detail-item">
                         <span class="detail-label">Sélecteur:</span>
                         <span class="detail-value">${step.selector}</span>
@@ -192,19 +248,22 @@ function renderSteps() {
                             ${!step.needsJustification ? 'disabled' : ''}
                         >${step.comment}</textarea>
                         
-                        <div class="justification-actions">
-                            ${step.needsJustification ? 
-                                `<button class="btn btn-success justify-btn" data-step-index="${testSteps.indexOf(step)}">
-                                    ✅ Justifier
-                                </button>` : 
-                                `<button class="btn btn-secondary edit-btn" data-step-index="${testSteps.indexOf(step)}">
-                                    ✏️ Modifier
-                                </button>`
-                            }
-                            <button class="btn btn-secondary reset-btn" data-step-index="${testSteps.indexOf(step)}">
-                                🔄 Réinitialiser
-                            </button>
-                        </div>
+                                                 <div class="justification-actions">
+                             ${step.needsJustification ? 
+                                 `<button class="btn btn-success justify-btn" data-step-index="${testSteps.indexOf(step)}">
+                                     ✅ Justifier
+                                 </button>` : 
+                                 `<button class="btn btn-secondary edit-btn" data-step-index="${testSteps.indexOf(step)}">
+                                     ✏️ Modifier
+                                 </button>`
+                             }
+                             <button class="btn btn-secondary reset-btn" data-step-index="${testSteps.indexOf(step)}">
+                                 🔄 Réinitialiser
+                             </button>
+                             <button class="btn btn-danger delete-btn" data-step-index="${testSteps.indexOf(step)}">
+                                 🗑️ Supprimer
+                             </button>
+                         </div>
                     </div>
                 </div>
                 
@@ -258,6 +317,27 @@ function resetJustification(stepIndex) {
     updateStats();
     renderSteps();
     saveChanges();
+}
+
+// Fonction pour supprimer une étape
+function deleteStep(stepIndex) {
+    const step = testSteps[stepIndex];
+    
+    // Demander confirmation
+    const confirmation = confirm(`Êtes-vous sûr de vouloir supprimer cette étape ?\n\nAction: ${step.comment}\nSélecteur: ${step.selector}`);
+    
+    if (confirmation) {
+        // Supprimer l'étape du tableau
+        testSteps.splice(stepIndex, 1);
+        
+        // Mettre à jour l'interface
+        updateStats();
+        renderSteps();
+        saveChanges();
+        
+        // Afficher une notification
+        showNotification(`✅ Étape supprimée avec succès`, 'success');
+    }
 }
 
 // Fonction pour ouvrir le dialog de capture d'écran
@@ -316,13 +396,21 @@ function addEventListeners() {
         });
     });
     
-    // Gestionnaires pour les boutons de réinitialisation
-    document.querySelectorAll('.reset-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const stepIndex = parseInt(this.dataset.stepIndex);
-            resetJustification(stepIndex);
-        });
-    });
+         // Gestionnaires pour les boutons de réinitialisation
+     document.querySelectorAll('.reset-btn').forEach(btn => {
+         btn.addEventListener('click', function() {
+             const stepIndex = parseInt(this.dataset.stepIndex);
+             resetJustification(stepIndex);
+         });
+     });
+     
+     // Gestionnaires pour les boutons de suppression
+     document.querySelectorAll('.delete-btn').forEach(btn => {
+         btn.addEventListener('click', function() {
+             const stepIndex = parseInt(this.dataset.stepIndex);
+             deleteStep(stepIndex);
+         });
+     });
     
          // Gestionnaires pour les captures d'écran
      document.querySelectorAll('.screenshot-img').forEach(img => {
@@ -351,30 +439,49 @@ function loadSampleData() {
     const sampleData = [
         {
             selector: "button.login-btn",
-            comment: "Cliquer sur le bouton de connexion",
+            comment: "Clic sur button (login-btn)",
             timestamp: "2025-01-16T10:30:00.000Z",
             url: "https://example.com/login",
             element: "button",
+            actionType: "click",
             needsJustification: true,
             screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
         },
         {
             selector: "input#email",
-            comment: "Saisir l'adresse email",
+            comment: "Modification de input (email-input) : \"\" → \"user@example.com\"",
             timestamp: "2025-01-16T10:30:05.000Z",
             url: "https://example.com/login",
             element: "input",
+            actionType: "change",
+            oldValue: "",
+            newValue: "user@example.com",
             needsJustification: false,
             screenshot: null
         },
         {
             selector: "input#password",
-            comment: "Saisir le mot de passe",
+            comment: "Modification de input (password-field) : \"\" → \"********\"",
             timestamp: "2025-01-16T10:30:10.000Z",
             url: "https://example.com/login",
             element: "input",
+            actionType: "change",
+            oldValue: "",
+            newValue: "********",
             needsJustification: true,
             screenshot: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        {
+            selector: "select#country",
+            comment: "Modification de select (country-select) : \"Sélectionner un pays\" → \"France\"",
+            timestamp: "2025-01-16T10:30:15.000Z",
+            url: "https://example.com/login",
+            element: "select",
+            actionType: "change",
+            oldValue: "Sélectionner un pays",
+            newValue: "France",
+            needsJustification: false,
+            screenshot: null
         }
     ];
 

@@ -163,15 +163,57 @@
             min-width: 100px;
         }
 
-        .detail-value {
-            color: #2d3748;
-            font-family: 'Courier New', monospace;
-            background: #f7fafc;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            word-break: break-word;
-        }
+                 .detail-value {
+             color: #2d3748;
+             font-family: 'Courier New', monospace;
+             background: #f7fafc;
+             padding: 5px 10px;
+             border-radius: 5px;
+             font-size: 0.9em;
+             word-break: break-word;
+         }
+
+         .action-type-badge {
+             padding: 4px 8px;
+             border-radius: 12px;
+             font-size: 0.8em;
+             font-weight: 600;
+             text-transform: uppercase;
+             letter-spacing: 0.5px;
+         }
+
+         .action-click {
+             background: #4299e1;
+             color: white;
+         }
+
+         .action-change {
+             background: #48bb78;
+             color: white;
+         }
+
+         .value-change {
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             font-family: 'Courier New', monospace;
+         }
+
+         .old-value {
+             color: #e53e3e;
+             text-decoration: line-through;
+             opacity: 0.7;
+         }
+
+         .arrow {
+             color: #718096;
+             font-weight: bold;
+         }
+
+         .new-value {
+             color: #38a169;
+             font-weight: 600;
+         }
 
         .screenshot-container {
             position: relative;
@@ -266,21 +308,34 @@
             color: white;
         }
 
-        .btn-success:hover {
-            background: #38a169;
-        }
-
-                          /* Styles pour l'élément dialog natif */
-         dialog {
-             border: none;
-             border-radius: 15px;
-             padding: 0;
-             max-width: 90vw;
-             max-height: 90vh;
-             background: white;
-             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-             position: relative;
+                 .btn-success:hover {
+             background: #38a169;
          }
+
+         .btn-danger {
+             background: #f56565;
+             color: white;
+         }
+
+         .btn-danger:hover {
+             background: #e53e3e;
+         }
+
+        /* Styles pour l'élément dialog natif */
+        dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            border: none;
+            border-radius: 15px;
+            padding: 0;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
 
          dialog::backdrop {
              background: rgba(0, 0, 0, 0.8);
@@ -445,12 +500,14 @@
                     <input type="file" id="file-input" accept=".json" style="display: none;">
                 </div>
             </div>
-            <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">Toutes</button>
-                <button class="filter-btn" data-filter="pending">En attente</button>
-                <button class="filter-btn" data-filter="justified">Justifiées</button>
-                <button class="filter-btn" data-filter="with-screenshots">Avec captures</button>
-            </div>
+                         <div class="filter-buttons">
+                 <button class="filter-btn active" data-filter="all">Toutes</button>
+                 <button class="filter-btn" data-filter="pending">En attente</button>
+                 <button class="filter-btn" data-filter="justified">Justifiées</button>
+                 <button class="filter-btn" data-filter="with-screenshots">Avec captures</button>
+                 <button class="filter-btn" data-filter="click">🖱️ Clics</button>
+                 <button class="filter-btn" data-filter="change">✏️ Modifications</button>
+             </div>
         </div>
 
         <div class="steps-container" id="steps-container">
