@@ -60,6 +60,7 @@ function loadTestData() {
              {
                  selector: "button.login-btn",
                  comment: "Clic sur button (login-btn)",
+                 expected: "L'élément button.login-btn doit être cliqué avec succès",
                  timestamp: "2025-01-16T10:30:00.000Z",
                  url: "https://example.com/login",
                  element: "button",
@@ -70,6 +71,7 @@ function loadTestData() {
              {
                  selector: "input#email",
                  comment: "Modification de input (email-input) : \"\" → \"user@example.com\"",
+                 expected: "L'élément input#email doit contenir la valeur \"user@example.com\"",
                  timestamp: "2025-01-16T10:30:05.000Z",
                  url: "https://example.com/login",
                  element: "input",
@@ -82,6 +84,7 @@ function loadTestData() {
              {
                  selector: "input#password",
                  comment: "Modification de input (password-field) : \"\" → \"********\"",
+                 expected: "L'élément input#password doit contenir la valeur \"********\"",
                  timestamp: "2025-01-16T10:30:10.000Z",
                  url: "https://example.com/login",
                  element: "input",
@@ -94,6 +97,7 @@ function loadTestData() {
              {
                  selector: "select#country",
                  comment: "Modification de select (country-select) : \"Sélectionner un pays\" → \"France\"",
+                 expected: "L'élément select#country doit afficher la valeur \"France\"",
                  timestamp: "2025-01-16T10:30:15.000Z",
                  url: "https://example.com/login",
                  element: "select",
@@ -114,25 +118,14 @@ function loadTestData() {
 // Fonction pour mettre à jour les statistiques
 function updateStats() {
     const totalSteps = testSteps.length;
-    const justifiedSteps = testSteps.filter(step => !step.needsJustification).length;
-    const pendingSteps = testSteps.filter(step => step.needsJustification).length;
     const screenshotsCount = testSteps.filter(step => step.screenshot).length;
     const clickSteps = testSteps.filter(step => step.actionType === 'click').length;
     const changeSteps = testSteps.filter(step => step.actionType === 'change').length;
 
     document.getElementById('total-steps').textContent = totalSteps;
-    document.getElementById('justified-steps').textContent = justifiedSteps;
-    document.getElementById('pending-steps').textContent = pendingSteps;
+    document.getElementById('justified-steps').textContent = clickSteps;
+    document.getElementById('pending-steps').textContent = changeSteps;
     document.getElementById('screenshots-count').textContent = screenshotsCount;
-    
-    // Mettre à jour les labels pour inclure les types d'actions
-    const justifiedElement = document.getElementById('justified-steps');
-    const pendingElement = document.getElementById('pending-steps');
-    
-    if (justifiedElement && pendingElement) {
-        justifiedElement.textContent = justifiedSteps;
-        pendingElement.textContent = pendingSteps;
-    }
 }
 
 // Fonction pour filtrer les étapes
@@ -162,33 +155,27 @@ function renderSteps() {
     container.style.display = 'grid';
     emptyState.style.display = 'none';
 
-         // Filtrer les étapes selon le filtre actuel
-     let filteredSteps = testSteps;
-     switch (currentFilter) {
-         case 'pending':
-             filteredSteps = testSteps.filter(step => step.needsJustification);
-             break;
-         case 'justified':
-             filteredSteps = testSteps.filter(step => !step.needsJustification);
-             break;
-         case 'with-screenshots':
-             filteredSteps = testSteps.filter(step => step.screenshot);
-             break;
-         case 'click':
-             filteredSteps = testSteps.filter(step => step.actionType === 'click');
-             break;
-         case 'change':
-             filteredSteps = testSteps.filter(step => step.actionType === 'change');
-             break;
-     }
+    // Filtrer les étapes selon le filtre actuel
+    let filteredSteps = testSteps;
+    switch (currentFilter) {
+        case 'with-screenshots':
+            filteredSteps = testSteps.filter(step => step.screenshot);
+            break;
+        case 'click':
+            filteredSteps = testSteps.filter(step => step.actionType === 'click');
+            break;
+        case 'change':
+            filteredSteps = testSteps.filter(step => step.actionType === 'change');
+            break;
+    }
 
     container.innerHTML = filteredSteps.map((step, index) => `
         <div class="step-card" data-step-index="${testSteps.indexOf(step)}">
             <div class="step-header">
                 <div class="step-number">${index + 1}</div>
                 <div class="step-status">
-                    <span class="status-badge ${step.needsJustification ? 'status-pending' : 'status-justified'}">
-                        ${step.needsJustification ? '⚠️ En attente' : '✅ Justifiée'}
+                    <span class="status-badge ${step.actionType === 'click' ? 'status-justified' : 'status-pending'}">
+                        ${step.actionType === 'click' ? '🖱️ Clic' : '✏️ Modification'}
                     </span>
                     ${step.screenshot ? '<span style="color: #667eea;">📷</span>' : ''}
                 </div>
@@ -196,30 +183,34 @@ function renderSteps() {
             
             <div class="step-content">
                 <div class="step-details">
-                                         <div class="detail-item">
-                         <span class="detail-label">Action:</span>
-                         <span class="detail-value">${step.comment}</span>
-                     </div>
-                     <div class="detail-item">
-                         <span class="detail-label">Type:</span>
-                         <span class="detail-value">
-                             <span class="action-type-badge ${step.actionType === 'click' ? 'action-click' : 'action-change'}">
-                                 ${step.actionType === 'click' ? '🖱️ Clic' : '✏️ Modification'}
-                             </span>
-                         </span>
-                     </div>
-                     ${step.actionType === 'change' && step.oldValue !== step.newValue ? `
-                     <div class="detail-item">
-                         <span class="detail-label">Valeurs:</span>
-                         <span class="detail-value">
-                             <span class="value-change">
-                                 <span class="old-value">"${step.oldValue}"</span>
-                                 <span class="arrow">→</span>
-                                 <span class="new-value">"${step.newValue}"</span>
-                             </span>
-                         </span>
-                     </div>
-                     ` : ''}
+                    <div class="detail-item">
+                        <span class="detail-label">Action:</span>
+                        <span class="detail-value">${step.comment}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Expected:</span>
+                        <span class="detail-value">${step.expected || 'Non défini'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Type:</span>
+                        <span class="detail-value">
+                            <span class="action-type-badge ${step.actionType === 'click' ? 'action-click' : 'action-change'}">
+                                ${step.actionType === 'click' ? '🖱️ Clic' : '✏️ Modification'}
+                            </span>
+                        </span>
+                    </div>
+                    ${step.actionType === 'change' && step.oldValue !== step.newValue ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Valeurs:</span>
+                        <span class="detail-value">
+                            <span class="value-change">
+                                <span class="old-value">"${step.oldValue}"</span>
+                                <span class="arrow">→</span>
+                                <span class="new-value">"${step.newValue}"</span>
+                            </span>
+                        </span>
+                    </div>
+                    ` : ''}
                     <div class="detail-item">
                         <span class="detail-label">Sélecteur:</span>
                         <span class="detail-value">${step.selector}</span>
@@ -232,44 +223,43 @@ function renderSteps() {
                         <span class="detail-label">URL:</span>
                         <span class="detail-value">${step.url}</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Timestamp:</span>
-                        <span class="detail-value">${new Date(step.timestamp).toLocaleString('fr-FR')}</span>
-                    </div>
                     
                     <div class="justification-section">
-                        <label for="justification-${index}" style="font-weight: 600; color: #4a5568; margin-bottom: 10px; display: block;">
-                            Justification:
+                        <label for="action-${index}" style="font-weight: 600; color: #4a5568; margin-bottom: 10px; display: block;">
+                            Action:
                         </label>
                         <textarea 
-                            id="justification-${index}" 
+                            id="action-${index}" 
                             class="justification-textarea" 
-                            placeholder="Décrivez pourquoi cette action est nécessaire..."
-                            ${!step.needsJustification ? 'disabled' : ''}
+                            placeholder="Décrivez l'action à effectuer..."
                         >${step.comment}</textarea>
                         
-                                                 <div class="justification-actions">
-                             ${step.needsJustification ? 
-                                 `<button class="btn btn-success justify-btn" data-step-index="${testSteps.indexOf(step)}">
-                                     ✅ Justifier
-                                 </button>` : 
-                                 `<button class="btn btn-secondary edit-btn" data-step-index="${testSteps.indexOf(step)}">
-                                     ✏️ Modifier
-                                 </button>`
-                             }
-                             <button class="btn btn-secondary reset-btn" data-step-index="${testSteps.indexOf(step)}">
-                                 🔄 Réinitialiser
-                             </button>
-                             <button class="btn btn-danger delete-btn" data-step-index="${testSteps.indexOf(step)}">
-                                 🗑️ Supprimer
-                             </button>
-                         </div>
+                        <label for="expected-${index}" style="font-weight: 600; color: #4a5568; margin-bottom: 10px; display: block; margin-top: 15px;">
+                            Expected:
+                        </label>
+                        <textarea 
+                            id="expected-${index}" 
+                            class="justification-textarea" 
+                            placeholder="Décrivez le résultat attendu..."
+                        >${step.expected || ''}</textarea>
+                        
+                        <div class="justification-actions">
+                            <button class="btn btn-success save-btn" data-step-index="${testSteps.indexOf(step)}">
+                                💾 Sauvegarder
+                            </button>
+                            <button class="btn btn-danger delete-btn" data-step-index="${testSteps.indexOf(step)}">
+                                🗑️ Supprimer
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="screenshot-container">
                     ${step.screenshot ? 
-                        `<img src="${step.screenshot}" alt="Capture d'écran" class="screenshot screenshot-img" data-screenshot="${step.screenshot}">` : 
+                        `<div style="position: relative;">
+                            <img src="${step.screenshot}" alt="Capture d'écran" class="screenshot screenshot-img" data-screenshot="${step.screenshot}">
+                            <button class="btn btn-danger remove-screenshot-btn" data-step-index="${testSteps.indexOf(step)}" style="position: absolute; top: 5px; right: 5px; padding: 5px 8px; font-size: 0.8em; min-width: auto;">🗑️</button>
+                        </div>` : 
                         `<div class="no-screenshot">📷 Aucune capture d'écran</div>`
                     }
                 </div>
@@ -281,42 +271,26 @@ function renderSteps() {
     addEventListeners();
 }
 
-// Fonction pour justifier une étape
-function justifyStep(stepIndex) {
-    const textarea = document.getElementById(`justification-${testSteps.indexOf(testSteps[stepIndex])}`);
-    const newComment = textarea.value.trim();
+// Fonction pour sauvegarder une étape
+function saveStep(stepIndex) {
+    const actionTextarea = document.getElementById(`action-${testSteps.indexOf(testSteps[stepIndex])}`);
+    const expectedTextarea = document.getElementById(`expected-${testSteps.indexOf(testSteps[stepIndex])}`);
     
-    if (newComment) {
-        testSteps[stepIndex].comment = newComment;
-        testSteps[stepIndex].needsJustification = false;
+    const newAction = actionTextarea.value.trim();
+    const newExpected = expectedTextarea.value.trim();
+    
+    if (newAction) {
+        testSteps[stepIndex].comment = newAction;
+        testSteps[stepIndex].expected = newExpected;
         updateStats();
         renderSteps();
         
-        // Sauvegarder les modifications (à implémenter avec l'extension)
+        // Sauvegarder les modifications
         saveChanges();
+        showNotification('✅ Étape sauvegardée avec succès', 'success');
+    } else {
+        showNotification('❌ L\'action ne peut pas être vide', 'error');
     }
-}
-
-// Fonction pour éditer une justification
-function editJustification(stepIndex) {
-    const textarea = document.getElementById(`justification-${testSteps.indexOf(testSteps[stepIndex])}`);
-    textarea.disabled = false;
-    textarea.focus();
-}
-
-// Fonction pour réinitialiser une justification
-function resetJustification(stepIndex) {
-    const step = testSteps[stepIndex];
-    const textarea = document.getElementById(`justification-${testSteps.indexOf(step)}`);
-    
-    const originalComment = `Action sur ${step.element}${step.className ? ' (' + step.className + ')' : ''}`;
-    textarea.value = originalComment;
-    step.comment = originalComment;
-    step.needsJustification = true;
-    
-    updateStats();
-    renderSteps();
-    saveChanges();
 }
 
 // Fonction pour supprimer une étape
@@ -380,45 +354,46 @@ function saveChanges() {
 
 // Fonction pour ajouter tous les gestionnaires d'événements
 function addEventListeners() {
-    // Gestionnaires pour les boutons de justification
-    document.querySelectorAll('.justify-btn').forEach(btn => {
+    // Gestionnaires pour les boutons de sauvegarde
+    document.querySelectorAll('.save-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const stepIndex = parseInt(this.dataset.stepIndex);
-            justifyStep(stepIndex);
+            saveStep(stepIndex);
         });
     });
     
-    // Gestionnaires pour les boutons d'édition
-    document.querySelectorAll('.edit-btn').forEach(btn => {
+    // Gestionnaires pour les boutons de suppression
+    document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const stepIndex = parseInt(this.dataset.stepIndex);
-            editJustification(stepIndex);
+            deleteStep(stepIndex);
         });
     });
     
-         // Gestionnaires pour les boutons de réinitialisation
-     document.querySelectorAll('.reset-btn').forEach(btn => {
-         btn.addEventListener('click', function() {
-             const stepIndex = parseInt(this.dataset.stepIndex);
-             resetJustification(stepIndex);
-         });
-     });
-     
-     // Gestionnaires pour les boutons de suppression
-     document.querySelectorAll('.delete-btn').forEach(btn => {
-         btn.addEventListener('click', function() {
-             const stepIndex = parseInt(this.dataset.stepIndex);
-             deleteStep(stepIndex);
-         });
-     });
-    
-         // Gestionnaires pour les captures d'écran
-     document.querySelectorAll('.screenshot-img').forEach(img => {
-         img.addEventListener('click', function() {
-             const screenshotSrc = this.dataset.screenshot;
-             openDialog(screenshotSrc);
-         });
-     });
+    // Gestionnaires pour les captures d'écran
+    document.querySelectorAll('.screenshot-img').forEach(img => {
+        img.addEventListener('click', function() {
+            const screenshotSrc = this.dataset.screenshot;
+            openDialog(screenshotSrc);
+        });
+    });
+
+    // Gestionnaires pour le bouton de suppression des captures d'écran
+    document.querySelectorAll('.remove-screenshot-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const stepIndex = parseInt(this.dataset.stepIndex);
+            const step = testSteps[stepIndex];
+            const confirmation = confirm(`Êtes-vous sûr de vouloir supprimer la capture d'écran de cette étape ?\n\nAction: ${step.comment}\nSélecteur: ${step.selector}`);
+
+            if (confirmation) {
+                step.screenshot = null; // Supprimer la capture d'écran du tableau
+                updateStats();
+                renderSteps();
+                saveChanges();
+                showNotification(`✅ Capture d'écran supprimée avec succès`, 'success');
+            }
+        });
+    });
 }
 
 // Fonction pour charger les vraies données depuis l'extension
@@ -440,6 +415,7 @@ function loadSampleData() {
         {
             selector: "button.login-btn",
             comment: "Clic sur button (login-btn)",
+            expected: "L'élément button.login-btn doit être cliqué avec succès",
             timestamp: "2025-01-16T10:30:00.000Z",
             url: "https://example.com/login",
             element: "button",
@@ -450,6 +426,7 @@ function loadSampleData() {
         {
             selector: "input#email",
             comment: "Modification de input (email-input) : \"\" → \"user@example.com\"",
+            expected: "L'élément input#email doit contenir la valeur \"user@example.com\"",
             timestamp: "2025-01-16T10:30:05.000Z",
             url: "https://example.com/login",
             element: "input",
@@ -462,6 +439,7 @@ function loadSampleData() {
         {
             selector: "input#password",
             comment: "Modification de input (password-field) : \"\" → \"********\"",
+            expected: "L'élément input#password doit contenir la valeur \"********\"",
             timestamp: "2025-01-16T10:30:10.000Z",
             url: "https://example.com/login",
             element: "input",
@@ -474,6 +452,7 @@ function loadSampleData() {
         {
             selector: "select#country",
             comment: "Modification de select (country-select) : \"Sélectionner un pays\" → \"France\"",
+            expected: "L'élément select#country doit afficher la valeur \"France\"",
             timestamp: "2025-01-16T10:30:15.000Z",
             url: "https://example.com/login",
             element: "select",
@@ -622,8 +601,8 @@ function exportToMarkdown(config) {
     let markdownContent = `# Test Recorder - Rapport d'Enregistrement\n\n`;
     markdownContent += `> 📅 **Date d'export:** ${new Date().toLocaleString('fr-FR')}\n`;
     markdownContent += `> 📊 **Total d'étapes:** ${testSteps.length}\n`;
-    markdownContent += `> ✅ **Étapes justifiées:** ${testSteps.filter(step => !step.needsJustification).length}\n`;
-    markdownContent += `> ⚠️ **Étapes en attente:** ${testSteps.filter(step => step.needsJustification).length}\n`;
+    markdownContent += `> 🖱️ **Actions de clic:** ${testSteps.filter(step => step.actionType === 'click').length}\n`;
+    markdownContent += `> ✏️ **Modifications:** ${testSteps.filter(step => step.actionType === 'change').length}\n`;
     markdownContent += `> 📷 **Captures d'écran:** ${testSteps.filter(step => step.screenshot).length}\n\n`;
     
     // Ajouter un tableau de contenu si il y a beaucoup d'étapes
@@ -631,8 +610,7 @@ function exportToMarkdown(config) {
         markdownContent += `## 📋 Tableau des Matières\n\n`;
         testSteps.forEach((step, index) => {
             const actionType = step.actionType === 'click' ? '🖱️' : '✏️';
-            const status = step.needsJustification ? '⚠️' : '✅';
-            markdownContent += `${index + 1}. [${actionType} ${step.comment.substring(0, 50)}...]($etape-${index + 1}) ${status}\n`;
+            markdownContent += `${index + 1}. [${actionType} ${step.comment.substring(0, 50)}...]($etape-${index + 1})\n`;
         });
         markdownContent += `\n---\n\n`;
     }
@@ -640,9 +618,8 @@ function exportToMarkdown(config) {
     // Traiter chaque étape
     testSteps.forEach((step, index) => {
         const actionType = step.actionType === 'click' ? '🖱️' : '✏️';
-        const status = step.needsJustification ? '⚠️ En attente' : '✅ Justifiée';
         
-        markdownContent += `## ${actionType} Étape ${index + 1} - ${status}\n\n`;
+        markdownContent += `## ${actionType} Étape ${index + 1}\n\n`;
         
         // Action
         if (properties.includes('action')) {
@@ -650,22 +627,15 @@ function exportToMarkdown(config) {
             markdownContent += `**${step.comment}**\n\n`;
         }
         
-        // Expected (utilise le commentaire comme expected par défaut)
+        // Expected
         if (properties.includes('expected')) {
             markdownContent += `### ✅ Expected\n\n`;
-            if (step.actionType === 'click') {
-                markdownContent += `L'élément \`${step.selector}\` doit être cliqué avec succès.\n\n`;
-            } else if (step.actionType === 'change') {
-                markdownContent += `La valeur de l'élément \`${step.selector}\` doit être modifiée de \`"${step.oldValue}"\` vers \`"${step.newValue}"\`.\n\n`;
-            } else {
-                markdownContent += `L'action "${step.comment}" doit être exécutée avec succès.\n\n`;
-            }
+            markdownContent += `${step.expected || 'Non défini'}\n\n`;
         }
         
         // Détails techniques
         if (properties.includes('selector') || properties.includes('element') || 
-            properties.includes('url') || properties.includes('timestamp') || 
-            properties.includes('values')) {
+            properties.includes('url') || properties.includes('values')) {
             
             markdownContent += `### 🔧 Détails Techniques\n\n`;
             markdownContent += `| Propriété | Valeur |\n`;
@@ -681,10 +651,6 @@ function exportToMarkdown(config) {
             
             if (properties.includes('url')) {
                 markdownContent += `| **URL** | \`${step.url}\` |\n`;
-            }
-            
-            if (properties.includes('timestamp')) {
-                markdownContent += `| **Timestamp** | \`${new Date(step.timestamp).toLocaleString('fr-FR')}\` |\n`;
             }
             
             if (properties.includes('values') && step.actionType === 'change' && step.oldValue !== step.newValue) {
@@ -719,8 +685,6 @@ function exportToMarkdown(config) {
     const clickSteps = testSteps.filter(step => step.actionType === 'click');
     const changeSteps = testSteps.filter(step => step.actionType === 'change');
     const screenshotSteps = testSteps.filter(step => step.screenshot);
-    const justifiedSteps = testSteps.filter(step => !step.needsJustification);
-    const pendingSteps = testSteps.filter(step => step.needsJustification);
     
     markdownContent += `### Statistiques Générales\n\n`;
     markdownContent += `| Métrique | Valeur |\n`;
@@ -728,9 +692,7 @@ function exportToMarkdown(config) {
     markdownContent += `| **Total d'étapes** | ${testSteps.length} |\n`;
     markdownContent += `| **Actions de clic** | ${clickSteps.length} |\n`;
     markdownContent += `| **Modifications** | ${changeSteps.length} |\n`;
-    markdownContent += `| **Étapes avec captures** | ${screenshotSteps.length} |\n`;
-    markdownContent += `| **Étapes justifiées** | ${justifiedSteps.length} |\n`;
-    markdownContent += `| **Étapes en attente** | ${pendingSteps.length} |\n\n`;
+    markdownContent += `| **Étapes avec captures** | ${screenshotSteps.length} |\n\n`;
     
     // Ajouter des détails sur les URLs visitées
     const uniqueUrls = [...new Set(testSteps.map(step => step.url))];

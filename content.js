@@ -64,6 +64,7 @@ function handleClick(event) {
     const step = {
       selector: selector, 
       comment: `Clic sur ${event.target.tagName.toLowerCase()}${event.target.className ? ' (' + event.target.className + ')' : ''}`,
+      expected: `L'élément ${selector} doit être cliqué avec succès`,
       timestamp: new Date().toISOString(),
       url: window.location.href,
       element: event.target.tagName.toLowerCase(),
@@ -149,10 +150,23 @@ function handleChange(event) {
       comment += ` : "${oldValue}" → "${newValue}"`;
     }
     
+    // Créer l'expected basé sur le type d'élément
+    let expected = `L'élément ${selector} doit être modifié avec succès`;
+    if (element.type === 'checkbox' || element.type === 'radio') {
+      expected = `L'élément ${selector} doit être ${newValue === 'checked' ? 'coché' : 'décoché'} avec succès`;
+    } else if (element.tagName === 'SELECT') {
+      expected = `L'élément ${selector} doit afficher la valeur "${newValue}"`;
+    } else if (element.type === 'file') {
+      expected = `L'élément ${selector} doit accepter le fichier sélectionné`;
+    } else {
+      expected = `L'élément ${selector} doit contenir la valeur "${newValue}"`;
+    }
+    
     // Enregistrer l'action de base
     const step = {
       selector: selector, 
       comment: comment,
+      expected: expected,
       timestamp: new Date().toISOString(),
       url: window.location.href,
       element: element.tagName.toLowerCase(),
@@ -199,11 +213,28 @@ function handleChange(event) {
 
 async function takeScreenshot() {
   try {
+    // Masquer temporairement l'indicateur d'enregistrement
+    const indicator = document.getElementById('test-recorder-indicator');
+    let indicatorHidden = false;
+    
+    if (indicator) {
+      indicator.style.display = 'none';
+      indicatorHidden = true;
+    }
+    
+    // Attendre un peu pour que l'indicateur soit complètement masqué
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Demander au background script de prendre la capture d'écran
     console.log('Demande de capture d\'écran au background script');
     
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
+        // Restaurer l'indicateur d'enregistrement
+        if (indicatorHidden && indicator) {
+          indicator.style.display = 'block';
+        }
+        
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
         } else if (response && response.success) {
@@ -214,6 +245,12 @@ async function takeScreenshot() {
       });
     });
   } catch (error) {
+    // S'assurer que l'indicateur est restauré même en cas d'erreur
+    const indicator = document.getElementById('test-recorder-indicator');
+    if (indicator) {
+      indicator.style.display = 'block';
+    }
+    
     console.error('Erreur lors de la capture d\'écran:', error);
     throw error;
   }
@@ -388,6 +425,7 @@ function showRecordingIndicator() {
         <span>Enregistrement en cours...</span>
         <span class="step-count">Étapes: 0</span>
         <button id="test-recorder-screenshots" class="screenshots-btn" title="Captures d'écran">📷</button>
+        <button id="test-recorder-justify-last" class="justify-last-btn" title="Justifier la dernière étape (Ctrl+J)">✅</button>
         <button id="test-recorder-toggle" class="toggle-btn">📋</button>
       </div>
       <div id="test-recorder-actions" class="actions-list" style="display: none;">
@@ -407,10 +445,12 @@ function showRecordingIndicator() {
   document.getElementById('test-recorder-toggle').addEventListener('click', toggleActionsList);
   document.getElementById('test-recorder-clear').addEventListener('click', clearActions);
   document.getElementById('test-recorder-screenshots').addEventListener('click', toggleScreenshots);
+  document.getElementById('test-recorder-justify-last').addEventListener('click', justifyLastStep);
   
   // Mettre à jour le compteur d'étapes
   updateStepCount();
   updateScreenshotsButton();
+  updateJustifyLastButton();
 }
 
 function toggleScreenshots() {
@@ -491,6 +531,7 @@ function updateActionList() {
       `<div class="action-screenshot">
         <img src="${step.screenshot}" alt="Capture d'écran de l'action" class="screenshot-thumbnail" />
         <button class="view-screenshot-btn" data-screenshot="${step.screenshot}">🔍</button>
+        <button class="remove-screenshot-btn" data-index="${testSteps.length - 1 - index}" title="Supprimer la capture d'écran">🗑️</button>
       </div>` : 
       `<div class="action-screenshot">
         <span class="no-screenshot">📷</span>
@@ -530,6 +571,17 @@ function updateActionList() {
       showScreenshotModal(screenshot);
     });
   });
+  
+  // Ajouter les gestionnaires pour les boutons de suppression des captures d'écran
+  document.querySelectorAll('.remove-screenshot-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const index = parseInt(e.target.dataset.index);
+      removeScreenshot(index);
+    });
+  });
+  
+  // Mettre à jour le bouton de justification de la dernière étape
+  updateJustifyLastButton();
 }
 
 function showScreenshotModal(screenshot) {
@@ -652,6 +704,18 @@ function downloadFiles(files) {
   }
 }
 
+// Fonction pour supprimer une capture d'écran d'une étape
+function removeScreenshot(index) {
+  const step = testSteps[index];
+  if (!step) return;
+  
+  if (confirm('Voulez-vous vraiment supprimer la capture d\'écran de cette étape ?')) {
+    step.screenshot = null;
+    updateActionList();
+    console.log(`Capture d'écran supprimée de l'étape ${index + 1}`);
+  }
+}
+
 // Fonction pour afficher une notification de succès
 function showSuccessNotification() {
   const notification = document.createElement('div');
@@ -724,3 +788,87 @@ function showErrorNotification() {
     }
   }, 3000);
 }
+
+// Fonction pour justifier la dernière étape
+function justifyLastStep() {
+  if (testSteps.length === 0) {
+    showNotification('Aucune étape à justifier', 'warning');
+    return;
+  }
+  
+  const lastStep = testSteps[testSteps.length - 1];
+  const comment = prompt(`Justifiez la dernière action sur ${lastStep.element}:\n\nSélecteur: ${lastStep.selector}`, lastStep.comment);
+  
+  if (comment !== null) {
+    lastStep.comment = comment;
+    lastStep.needsJustification = false;
+    updateActionList();
+    updateJustifyLastButton();
+    showNotification('Dernière étape justifiée avec succès', 'success');
+  }
+}
+
+// Fonction pour mettre à jour le bouton de justification de la dernière étape
+function updateJustifyLastButton() {
+  const btn = document.getElementById('test-recorder-justify-last');
+  if (btn) {
+    const hasUnjustifiedSteps = testSteps.some(step => step.needsJustification);
+    btn.style.opacity = hasUnjustifiedSteps ? '1' : '0.5';
+    btn.style.cursor = hasUnjustifiedSteps ? 'pointer' : 'default';
+    btn.title = hasUnjustifiedSteps ? 'Justifier la dernière étape (Ctrl+J)' : 'Aucune étape à justifier';
+  }
+}
+
+// Fonction pour afficher une notification
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `test-recorder-notification notification-${type}`;
+  notification.textContent = message;
+  
+  // Styles pour la notification
+  notification.style.cssText = `
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: ${type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : type === 'error' ? '#dc3545' : '#17a2b8'};
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 1000001;
+    max-width: 300px;
+    word-wrap: break-word;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    animation: slideInRight 0.3s ease-out;
+  `;
+  
+  // Ajouter l'animation CSS si elle n'existe pas
+  if (!document.querySelector('#notification-animations')) {
+    const style = document.createElement('style');
+    style.id = 'notification-animations';
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(notification);
+  
+  // Supprimer la notification après 3 secondes
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 3000);
+}
+
+// Ajouter le gestionnaire de raccourcis clavier
+document.addEventListener('keydown', function(event) {
+  if (recording && event.ctrlKey && event.key === 'j') {
+    event.preventDefault();
+    justifyLastStep();
+  }
+});

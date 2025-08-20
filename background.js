@@ -129,7 +129,7 @@ function generateTestRailJson(data) {
 
   const steps = data.map((step, index) => ({
     content: `Étape ${index + 1}: ${step.comment || 'Action non décrite'}`,
-    expected: `L'élément ${step.selector || 'sélecteur inconnu'} doit être accessible et fonctionnel`
+    expected: step.expected || `L'élément ${step.selector || 'sélecteur inconnu'} doit être accessible et fonctionnel`
   }));
 
   const firstStep = data[0] || {};
@@ -161,9 +161,9 @@ function generateSelectorLog(data) {
 
   data.forEach((step, index) => {
     log += `=== ÉTAPE ${index + 1} ===\n`;
-    log += `Timestamp: ${step.timestamp || 'N/A'}\n`;
-    log += `Sélecteur CSS: ${step.selector || 'N/A'}\n`;
     log += `Action: ${step.comment || 'N/A'}\n`;
+    log += `Expected: ${step.expected || 'N/A'}\n`;
+    log += `Sélecteur CSS: ${step.selector || 'N/A'}\n`;
     log += `URL: ${step.url || 'N/A'}\n`;
     log += `Capture d'écran: ${step.screenshot ? 'Disponible' : 'Non disponible'}\n\n`;
   });

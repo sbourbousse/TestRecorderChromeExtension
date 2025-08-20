@@ -24,7 +24,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: pulse 2s infinite;
 }
 
 .toggle-btn {
@@ -55,6 +54,30 @@
 
 .screenshots-btn:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.justify-last-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.justify-last-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.justify-last-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.justify-last-btn:disabled:hover {
+  background: none;
 }
 
 .actions-list {
@@ -228,6 +251,21 @@
   background: #138496;
 }
 
+.remove-screenshot-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-screenshot-btn:hover {
+  background: #c82333;
+}
+
 /* Modal pour afficher les captures d'écran en grand */
 .screenshot-modal {
   position: fixed;
@@ -307,12 +345,6 @@
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
 }
 
 @keyframes blink {
